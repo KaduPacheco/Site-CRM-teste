@@ -12,7 +12,7 @@ const Footer = () => {
             <span className="font-bold text-foreground">Ponto Eletrônico</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} PontoFácil. Todos os direitos reservados.
+            © {new Date().getFullYear()} Ponto Eletrônico. Todos os direitos reservados.
           </p>
         </div>
       </div>

@@ -38,7 +38,7 @@ const Hero = () => {
           <div className="relative">
             <img
               src={heroMockup}
-              alt="Interface do sistema PontoFácil mostrando dashboard de controle de ponto eletrônico"
+              alt="Interface do sistema Ponto Eletrônico mostrando dashboard de controle de ponto eletrônico"
               width={1280}
               height={800}
               className="w-full rounded-2xl shadow-2xl"
