@@ -58,9 +58,9 @@ const LeadForm = () => {
             <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
               Comece a usar agora mesmo
             </h2>
-            <p className="opacity-90">
-              Preencha seus dados e receba acesso gratuito por 14 dias. Sem cartão de crédito.
-            </p>
+             <p className="opacity-90">
+               Preencha seus dados e receba acesso gratuito por 7 dias. Sem cartão de crédito.
+             </p>
           </div>
           <form
             onSubmit={handleSubmit}
