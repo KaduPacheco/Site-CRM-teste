@@ -5,22 +5,25 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { CheckCircle, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { submitLeadToSupabase } from "@/script";
 
 const leadSchema = z.object({
   name: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
   whatsapp: z.string().trim().min(10, "WhatsApp inválido").max(20).regex(/^[\d\s()+-]+$/, "Formato inválido"),
-  email: z.string().trim().email("E-mail inválido").max(255),
-  employees: z.string().min(1, "Selecione a quantidade de funcionários"),
+  email: z.string().trim().email("E-mail inválido").max(255).optional().or(z.literal('')),
+  empresa: z.string().trim().min(2, "Nome da empresa é obrigatório").max(100),
+  employees: z.coerce.number().min(1, "Informe a quantidade de funcionários").int(),
 });
 
 const LeadForm = () => {
   const { ref, isVisible } = useScrollAnimation();
   const { toast } = useToast();
-  const [form, setForm] = useState({ name: "", whatsapp: "", email: "", employees: "" });
+  const [form, setForm] = useState({ name: "", whatsapp: "", email: "", empresa: "", employees: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const result = leadSchema.safeParse(form);
     if (!result.success) {
@@ -31,12 +34,33 @@ const LeadForm = () => {
       setErrors(fieldErrors);
       return;
     }
+    
     setErrors({});
-    setSubmitted(true);
-    toast({
-      title: "Cadastro realizado! 🎉",
-      description: "Em breve entraremos em contato com você.",
-    });
+    setIsSubmitting(true);
+    
+    try {
+      await submitLeadToSupabase({
+        nome: result.data.name,
+        whatsapp: result.data.whatsapp,
+        email: result.data.email || undefined,
+        empresa: result.data.empresa,
+        funcionarios: result.data.employees
+      });
+      
+      setSubmitted(true);
+      toast({
+        title: "Cadastro realizado! 🎉",
+        description: "Em breve entraremos em contato com você.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar",
+        description: "Não foi possível enviar seus dados, tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -92,7 +116,7 @@ const LeadForm = () => {
               <div>
                 <Input
                   type="email"
-                  placeholder="Seu melhor e-mail"
+                  placeholder="Seu melhor e-mail (opcional)"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="h-12 rounded-xl"
@@ -101,24 +125,35 @@ const LeadForm = () => {
                 {errors.email && <p className="text-destructive text-xs mt-1">{errors.email}</p>}
               </div>
               <div>
-                <select
+                <Input
+                  placeholder="Nome da sua empresa"
+                  value={form.empresa}
+                  onChange={(e) => setForm({ ...form, empresa: e.target.value })}
+                  className="h-12 rounded-xl"
+                  maxLength={100}
+                />
+                {errors.empresa && <p className="text-destructive text-xs mt-1">{errors.empresa}</p>}
+              </div>
+              <div>
+                <Input
+                  type="number"
+                  placeholder="Quantidade exata de funcionários"
                   value={form.employees}
                   onChange={(e) => setForm({ ...form, employees: e.target.value })}
-                  className="flex h-12 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 text-foreground"
-                >
-                  <option value="" disabled>Quantidade de funcionários</option>
-                  <option value="1-5">1 a 5 funcionários</option>
-                  <option value="6-10">6 a 10 funcionários</option>
-                  <option value="11-20">11 a 20 funcionários</option>
-                  <option value="21-50">21 a 50 funcionários</option>
-                  <option value="50+">Mais de 50 funcionários</option>
-                </select>
+                  className="h-12 rounded-xl"
+                  min="1"
+                />
                 {errors.employees && <p className="text-destructive text-xs mt-1">{errors.employees}</p>}
               </div>
             </div>
-            <Button variant="cta" type="submit" className="w-full h-14 rounded-xl mt-6 text-lg">
-              <Send className="w-5 h-5 mr-2" />
-              Quero testar agora
+            <Button 
+              variant="cta" 
+              type="submit" 
+              className="w-full h-14 rounded-xl mt-6 text-lg"
+              disabled={isSubmitting}
+            >
+              <Send className={`w-5 h-5 mr-2 ${isSubmitting ? 'animate-pulse' : ''}`} />
+              {isSubmitting ? "Enviando..." : "Quero testar agora"}
             </Button>
             <p className="text-center text-xs text-muted-foreground mt-4">
               🔒 Seus dados estão seguros. Não enviamos spam.
