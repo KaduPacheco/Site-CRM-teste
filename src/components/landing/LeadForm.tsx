@@ -16,7 +16,7 @@ const leadSchema = z.object({
 const LeadForm = () => {
   const { ref, isVisible } = useScrollAnimation();
   const { toast } = useToast();
-  const [form, setForm] = useState({ name: "", whatsapp: "", email: "" });
+  const [form, setForm] = useState({ name: "", whatsapp: "", email: "", employees: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
