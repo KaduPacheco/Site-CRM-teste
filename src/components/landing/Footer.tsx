@@ -9,7 +9,7 @@ const Footer = () => {
             <div className="w-8 h-8 rounded-lg bg-hero-gradient flex items-center justify-center">
               <Clock className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground">PontoFácil</span>
+            <span className="font-bold text-foreground">Ponto Eletrônico</span>
           </div>
           <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} PontoFácil. Todos os direitos reservados.
