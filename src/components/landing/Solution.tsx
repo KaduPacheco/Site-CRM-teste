@@ -1,26 +1,26 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Fingerprint, BarChart3, Clock, Smartphone } from "lucide-react";
+import { MonitorSmartphone, FileText, Settings, ShieldCheck } from "lucide-react";
 
 const solutions = [
   {
-    icon: Fingerprint,
-    title: "Registro digital de ponto",
-    description: "Seus funcionários batem o ponto com um clique. Sem papel, sem erro.",
+    icon: MonitorSmartphone,
+    title: "Registro Multiplataforma",
+    description: "Web, celular ou tablet. Registro de ponto com geolocalização e reconhecimento facial para evitar fraudes.",
   },
   {
-    icon: BarChart3,
-    title: "Relatórios automáticos",
-    description: "Relatórios de jornada prontos em segundos. Exporte para PDF ou Excel.",
+    icon: FileText,
+    title: "Fechamento Inteligente",
+    description: "Relatórios de jornada, horas extras e banco de horas calculados automaticamente em poucos cliques.",
   },
   {
-    icon: Clock,
-    title: "Controle de horas extras",
-    description: "Calcule automaticamente horas extras, banco de horas e faltas.",
+    icon: Settings,
+    title: "Gestão Unificada",
+    description: "Painel centralizado onde o gestor aprova atestados, ajustes manuais e acompanha a equipe em tempo real.",
   },
   {
-    icon: Smartphone,
-    title: "Acesso via celular ou PC",
-    description: "Funciona em qualquer dispositivo. Sem instalação, sem complicação.",
+    icon: ShieldCheck,
+    title: "100% Dentro da Lei",
+    description: "Sistema rigorosamente adequado às portarias do Ministério do Trabalho e Emprego (MTE).",
   },
 ];
 
@@ -28,30 +28,29 @@ const Solution = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section id="solucao" className="py-20">
+    <section id="solucao" className="py-24 bg-background">
       <div className="container" ref={ref}>
-        <div className="text-center mb-14">
-          <span className="text-sm font-semibold text-primary uppercase tracking-wider">A solução</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mt-2">
-            Tudo que você precisa para{" "}
-            <span className="text-gradient">controlar a jornada</span>
+        <div className="text-center mb-16 max-w-3xl mx-auto">
+          <span className="text-sm font-bold text-primary uppercase tracking-widest">Plataforma Completa</span>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mt-3 leading-tight">
+            Tecnologia moderna para <span className="text-primary">simplificar sua gestão de RH</span>
           </h2>
-          <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
-            O Ponto Eletrônico resolve seus problemas de controle de ponto em minutos, não em semanas.
+          <p className="text-lg text-muted-foreground mt-4">
+            Substitua processos manuais por um software desenhado para oferecer segurança, velocidade e clareza.
           </p>
         </div>
-        <div className="grid sm:grid-cols-2 gap-8">
+        <div className="grid sm:grid-cols-2 gap-8 lg:gap-12">
           {solutions.map((s, i) => (
             <div
               key={s.title}
-              className={`flex gap-5 p-6 rounded-xl border bg-card hover:shadow-lg transition-shadow ${isVisible ? (i % 2 === 0 ? "animate-slide-in-left" : "animate-slide-in-right") : "opacity-0"}`}
+              className={`flex gap-6 p-8 rounded-2xl border border-border bg-card hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ${isVisible ? (i % 2 === 0 ? "animate-slide-in-left" : "animate-slide-in-right") : "opacity-0"}`}
               style={{ animationDelay: `${i * 0.15}s` }}
             >
-              <div className="w-14 h-14 rounded-xl bg-accent flex items-center justify-center shrink-0">
-                <s.icon className="w-7 h-7 text-accent-foreground" />
+              <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <s.icon className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-foreground mb-1">{s.title}</h3>
+                <h3 className="font-bold text-xl text-foreground mb-2">{s.title}</h3>
                 <p className="text-muted-foreground leading-relaxed">{s.description}</p>
               </div>
             </div>

@@ -81,10 +81,10 @@ const LeadForm = () => {
         <div className="max-w-lg mx-auto">
           <div className={`text-center text-primary-foreground mb-10 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
             <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
-              Comece a usar agora mesmo
+              Fale com um Especialista
             </h2>
-             <p className="opacity-90">
-               Preencha seus dados e receba acesso gratuito por 7 dias. Sem cartão de crédito.
+             <p className="opacity-90 max-w-sm mx-auto">
+               Descubra como nossa plataforma pode eliminar o trabalho braçal do seu RH. Receba 7 dias de teste grátis.
              </p>
           </div>
           <form
