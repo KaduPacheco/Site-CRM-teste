@@ -111,7 +111,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 name="bot_field"
                 value={form.bot_field}
                 onChange={(e) => setForm({ ...form, bot_field: e.target.value })}
-                className="hidden"
+                className="opacity-0 absolute -z-10 w-0 h-0"
                 tabIndex={-1}
                 autoComplete="off"
                 aria-hidden="true"
@@ -200,7 +200,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               variant="cta" 
               type="submit" 
               className="w-full h-14 rounded-xl mt-6 text-lg"
-              disabled={isSubmitting}
+              disabled={isSubmitting || submitted}
             >
               <Send className={`w-5 h-5 mr-2 ${isSubmitting ? 'animate-pulse' : ''}`} />
               {isSubmitting ? "Enviando..." : "Quero testar agora"}

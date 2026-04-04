@@ -2,6 +2,7 @@
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const N8N_WEBHOOK_URL = import.meta.env.VITE_N8N_WEBHOOK_URL;
 
 export interface LeadData {
   nome: string;
@@ -34,26 +35,28 @@ export async function submitLeadToSupabase(lead: LeadData): Promise<boolean> {
   }
 
   // Enviar para o n8n Webhook
-  try {
-    const n8nResponse = await fetch("https://n8n.forteia.com.br/webhook/leads", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...lead,
-        origem: "landing_page",
-        status: "novo"
-      })
-    });
+  if (N8N_WEBHOOK_URL) {
+    try {
+      const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...lead,
+          origem: "landing_page",
+          status: "novo"
+        })
+      });
 
-    if (!n8nResponse.ok) {
-      console.warn(`Webhook do n8n retornou erro: ${n8nResponse.status}`);
+      if (!n8nResponse.ok) {
+        console.warn(`Webhook do n8n retornou erro: ${n8nResponse.status}`);
+      }
+    } catch (error) {
+      console.warn("Erro ao enviar dados para o webhook do n8n:", error);
+      // Não lançamos o erro aqui para não quebrar o fluxo principal caso o n8n esteja fora do ar,
+      // já que os dados principais já foram salvos no Supabase com sucesso.
     }
-  } catch (error) {
-    console.warn("Erro ao enviar dados para o webhook do n8n:", error);
-    // Não lançamos o erro aqui para não quebrar o fluxo principal caso o n8n esteja fora do ar,
-    // já que os dados principais já foram salvos no Supabase com sucesso.
   }
 
   return true;
