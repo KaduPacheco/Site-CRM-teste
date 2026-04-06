@@ -97,7 +97,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               Fale com um Especialista
             </h2>
              <p className="opacity-90 max-w-sm mx-auto">
-               Descubra como nossa plataforma pode eliminar o trabalho braçal do seu RH. Receba 7 dias de teste grátis.
+               Descubra como nossa plataforma pode eliminar o trabalho braçal do seu RH. Receba 30 dias de teste grátis.
              </p>
           </div>
           <form

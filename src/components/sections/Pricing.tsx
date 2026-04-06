@@ -75,7 +75,7 @@ const Pricing = () => {
               </Button>
 
               <p className="text-center text-xs opacity-70 mt-4">
-                ⚡ Teste grátis por 7 dias. Planos flexíveis conforme sua necessidade.
+                ⚡ Teste grátis por 30 dias. Planos flexíveis conforme sua necessidade.
               </p>
             </div>
           </div>
