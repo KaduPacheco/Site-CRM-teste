@@ -21,7 +21,7 @@ const Hero = () => {
               </Button>
             </div>
             <div className="flex flex-wrap gap-5 text-sm font-medium opacity-80">
-              {["Adequado às portarias do MTE", "Teste grátis de 30 dias", "Suporte corporativo ágil"].map((item) => (
+              {["Adequado às portarias do MTE", "Teste grátis de 14 dias", "Suporte corporativo ágil"].map((item) => (
                 <span key={item} className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   {item}
