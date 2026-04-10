@@ -13,13 +13,16 @@ export interface LeadData {
 }
 
 export async function submitLeadToSupabase(lead: LeadData): Promise<boolean> {
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+  // Hardening: Fallback seguro mantido na Tabela Padrão até o Trigger Backend (RPC) nascer na infra real.
+  const INTAKE_ENDPOINT = import.meta.env.VITE_SUPABASE_INTAKE_URL || `${SUPABASE_URL}/rest/v1/leads`;
+
+  const response = await fetch(INTAKE_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      Prefer: "return=minimal" // Retorna apenas os headers, não o body completo para economizar payload
+      Prefer: "return=minimal" // Retorna apenas 20x/status, sem expor o database.
     },
     body: JSON.stringify({
       ...lead,

@@ -4,16 +4,8 @@ import { Input } from "@/components/ui/Input";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { CheckCircle, Send } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
-import { z } from "zod";
+import { leadSchema } from "@/lib/validations";
 import { submitLeadToSupabase } from "@/services/leadService";
-
-const leadSchema = z.object({
-  name: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
-  whatsapp: z.string().trim().min(10, "WhatsApp inválido").max(20).regex(/^[\d\s()+-]+$/, "Formato inválido"),
-  email: z.string().trim().email("E-mail inválido").max(255).optional().or(z.literal('')),
-  empresa: z.string().trim().min(2, "Nome da empresa é obrigatório").max(100),
-  employees: z.coerce.number().min(1, "Informe a quantidade de funcionários").int(),
-});
 
 const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { ref, isVisible } = useScrollAnimation();
