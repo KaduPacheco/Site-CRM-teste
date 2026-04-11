@@ -1,10 +1,201 @@
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import {
+  Activity,
+  ArrowRight,
+  BriefcaseBusiness,
+  CalendarClock,
+  LayoutDashboard,
+  Users,
+} from "lucide-react";
+import AttentionPanel from "@/components/crm/dashboard/AttentionPanel";
+import ActivityFeed from "@/components/crm/dashboard/ActivityFeed";
+import KpiCard from "@/components/crm/dashboard/KpiCard";
+import PipelineChart from "@/components/crm/dashboard/PipelineChart";
+import RecentLeadsList from "@/components/crm/dashboard/RecentLeadsList";
+import SourceChart from "@/components/crm/dashboard/SourceChart";
+import UpcomingTasksList from "@/components/crm/dashboard/UpcomingTasksList";
+import { Button } from "@/components/ui/Button";
+import {
+  buildActivityFeed,
+  buildAttentionPanel,
+  buildLeadKpis,
+  buildPipelineDistribution,
+  buildRecentLeads,
+  buildSourceDistribution,
+  buildTaskKpis,
+  buildUpcomingTasks,
+  getDashboardEventsDataset,
+  getDashboardLeadsDataset,
+  getDashboardTasksDataset,
+} from "@/services/dashboardService";
+
 const DashboardPage = () => {
+  const leadsQuery = useQuery({
+    queryKey: ["crm-dashboard", "leads"],
+    queryFn: getDashboardLeadsDataset,
+    staleTime: 30_000,
+  });
+
+  const tasksQuery = useQuery({
+    queryKey: ["crm-dashboard", "tasks"],
+    queryFn: getDashboardTasksDataset,
+    staleTime: 30_000,
+  });
+
+  const eventsQuery = useQuery({
+    queryKey: ["crm-dashboard", "events"],
+    queryFn: () => getDashboardEventsDataset(8),
+    staleTime: 20_000,
+  });
+
+  const leadMetrics = leadsQuery.data ? buildLeadKpis(leadsQuery.data) : [];
+  const taskMetrics = tasksQuery.data ? buildTaskKpis(tasksQuery.data) : [];
+
+  const pipelineData = leadsQuery.data ? buildPipelineDistribution(leadsQuery.data) : [];
+  const sourceData = leadsQuery.data ? buildSourceDistribution(leadsQuery.data) : [];
+  const recentLeads = leadsQuery.data ? buildRecentLeads(leadsQuery.data) : [];
+  const upcomingTasks = tasksQuery.data ? buildUpcomingTasks(tasksQuery.data, leadsQuery.data) : [];
+  const activityFeed = eventsQuery.data ? buildActivityFeed(eventsQuery.data, leadsQuery.data) : [];
+  const attentionData =
+    leadsQuery.data && tasksQuery.data ? buildAttentionPanel(leadsQuery.data, tasksQuery.data) : undefined;
+
+  const lastUpdatedAt = Math.max(
+    leadsQuery.dataUpdatedAt || 0,
+    tasksQuery.dataUpdatedAt || 0,
+    eventsQuery.dataUpdatedAt || 0,
+  );
+
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">CRM Dashboard</h1>
-      <p className="opacity-80">Em breve: Relatórios e visão geral.</p>
+    <div className="space-y-6">
+      <section className="relative overflow-hidden rounded-[32px] border border-border/70 bg-card shadow-[0_30px_80px_-48px_rgba(15,23,42,0.55)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.14),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(15,118,110,0.16),transparent_38%)]" />
+        <div className="relative flex flex-col gap-6 px-6 py-7 lg:flex-row lg:items-end lg:justify-between lg:px-8">
+          <div className="max-w-3xl space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-primary">
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              Visao operacional do CRM
+            </div>
+            <div className="space-y-3">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground lg:text-4xl">
+                Acompanhe volume, execucao comercial e pontos de atencao em um so lugar.
+              </h1>
+              <p className="max-w-2xl text-sm leading-7 text-muted-foreground lg:text-base">
+                O dashboard consolida pipeline, origens, follow-ups e atividade recente usando apenas os dados ja
+                disponiveis no CRM autenticado.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:w-[360px]">
+            <div className="rounded-3xl border border-border/70 bg-background/80 p-4 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Status</p>
+              <p className="mt-3 text-sm font-medium text-foreground">
+                {leadsQuery.isError || tasksQuery.isError || eventsQuery.isError
+                  ? "Algumas secoes exigem revisao"
+                  : "Dashboard sincronizado"}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {lastUpdatedAt
+                  ? `Ultima atualizacao em ${formatDateTime(lastUpdatedAt)}`
+                  : "Sincronizando dados do CRM"}
+              </p>
+            </div>
+
+            <Button asChild className="h-auto justify-between rounded-3xl px-4 py-4">
+              <Link to="/crm/leads">
+                Explorar leads
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          metric={leadMetrics.find((metric) => metric.id === "total_leads")}
+          icon={Users}
+          isLoading={leadsQuery.isLoading}
+          errorMessage={leadsQuery.isError ? getErrorMessage(leadsQuery.error) : undefined}
+        />
+        <KpiCard
+          metric={leadMetrics.find((metric) => metric.id === "new_leads")}
+          icon={BriefcaseBusiness}
+          isLoading={leadsQuery.isLoading}
+          errorMessage={leadsQuery.isError ? getErrorMessage(leadsQuery.error) : undefined}
+        />
+        <KpiCard
+          metric={taskMetrics.find((metric) => metric.id === "open_tasks")}
+          icon={CalendarClock}
+          isLoading={tasksQuery.isLoading}
+          errorMessage={tasksQuery.isError ? getErrorMessage(tasksQuery.error) : undefined}
+        />
+        <KpiCard
+          metric={taskMetrics.find((metric) => metric.id === "overdue_tasks")}
+          icon={Activity}
+          isLoading={tasksQuery.isLoading}
+          errorMessage={tasksQuery.isError ? getErrorMessage(tasksQuery.error) : undefined}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
+        <PipelineChart
+          data={pipelineData}
+          isLoading={leadsQuery.isLoading}
+          errorMessage={leadsQuery.isError ? getErrorMessage(leadsQuery.error) : undefined}
+        />
+        <SourceChart
+          data={sourceData}
+          isLoading={leadsQuery.isLoading}
+          errorMessage={leadsQuery.isError ? getErrorMessage(leadsQuery.error) : undefined}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1fr,1fr]">
+        <RecentLeadsList
+          data={recentLeads}
+          isLoading={leadsQuery.isLoading}
+          errorMessage={leadsQuery.isError ? getErrorMessage(leadsQuery.error) : undefined}
+        />
+        <UpcomingTasksList
+          data={upcomingTasks}
+          isLoading={tasksQuery.isLoading}
+          errorMessage={tasksQuery.isError ? getErrorMessage(tasksQuery.error) : undefined}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
+        <ActivityFeed
+          data={activityFeed}
+          isLoading={eventsQuery.isLoading}
+          errorMessage={eventsQuery.isError ? getErrorMessage(eventsQuery.error) : undefined}
+        />
+        <AttentionPanel
+          data={attentionData}
+          isLoading={leadsQuery.isLoading || tasksQuery.isLoading}
+          errorMessage={
+            leadsQuery.isError
+              ? getErrorMessage(leadsQuery.error)
+              : tasksQuery.isError
+                ? getErrorMessage(tasksQuery.error)
+                : undefined
+          }
+        />
+      </section>
     </div>
   );
 };
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Tente novamente em instantes.";
+}
+
+function formatDateTime(timestamp: number) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(timestamp));
+}
 
 export default DashboardPage;
