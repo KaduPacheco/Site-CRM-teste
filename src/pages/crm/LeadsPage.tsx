@@ -1,104 +1,154 @@
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
-import { getCrmLeads } from "@/services/crmService";
+import { AlertCircle, RefreshCcw } from "lucide-react";
+import LeadStageBadge from "@/components/crm/LeadStageBadge";
+import LeadsKanbanBoard from "@/components/crm/leads/LeadsKanbanBoard";
+import LeadsResultsTable, { LeadWithSummary } from "@/components/crm/leads/LeadsResultsTable";
+import LeadsWorkspaceToolbar from "@/components/crm/leads/LeadsWorkspaceToolbar";
+import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  LeadResponsibilityFilter,
+  LeadsViewMode,
+  LeadStageFilter,
+  buildLeadTaskSummary,
+  getLeadStageValue,
+} from "@/lib/crmLeadPresentation";
+import { getCrmLeads, getLeadTasksOverview } from "@/services/crmService";
+import { CrmLeadTaskOverview } from "@/types/crm";
 
 const LeadsPage = () => {
-  const { data: leads, isLoading, isError, error } = useQuery({
-    queryKey: ['crm-leads'],
-    queryFn: getCrmLeads
+  const { user } = useAuth();
+  const [stageFilter, setStageFilter] = useState<LeadStageFilter>("all");
+  const [responsibilityFilter, setResponsibilityFilter] = useState<LeadResponsibilityFilter>("all");
+  const [viewMode, setViewMode] = useState<LeadsViewMode>("list");
+
+  const leadsQuery = useQuery({
+    queryKey: ["crm-leads"],
+    queryFn: getCrmLeads,
   });
 
-  return (
-    <div className="p-8 max-w-7xl mx-auto flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold tracking-tight">Gestão de Leads</h1>
-        <div className="text-sm font-medium opacity-70">
-          Últimos cadastros
+  const tasksOverviewQuery = useQuery({
+    queryKey: ["crm-leads-task-overview"],
+    queryFn: getLeadTasksOverview,
+  });
+
+  const leadRows = useMemo<LeadWithSummary[]>(() => {
+    const tasksByLeadId = new Map<string, CrmLeadTaskOverview[]>();
+
+    (tasksOverviewQuery.data ?? []).forEach((task) => {
+      const currentItems = tasksByLeadId.get(task.lead_id) ?? [];
+      currentItems.push(task);
+      tasksByLeadId.set(task.lead_id, currentItems);
+    });
+
+    return (leadsQuery.data ?? []).map((lead) => ({
+      lead,
+      taskSummary: buildLeadTaskSummary(tasksByLeadId.get(lead.id) ?? []),
+    }));
+  }, [leadsQuery.data, tasksOverviewQuery.data]);
+
+  const filteredRows = useMemo(() => {
+    return leadRows.filter(({ lead }) => {
+      const matchesStage = stageFilter === "all"
+        ? true
+        : stageFilter === "without_stage"
+          ? getLeadStageValue(lead) === "without_stage"
+          : getLeadStageValue(lead) === stageFilter;
+
+      const matchesResponsibility = responsibilityFilter === "all"
+        ? true
+        : responsibilityFilter === "mine"
+          ? Boolean(user?.id) && lead.owner_id === user.id
+          : responsibilityFilter === "assigned"
+            ? Boolean(lead.owner_id)
+            : !lead.owner_id;
+
+      return matchesStage && matchesResponsibility;
+    });
+  }, [leadRows, responsibilityFilter, stageFilter, user?.id]);
+
+  const overdueLeads = filteredRows.filter(({ taskSummary }) => taskSummary.overdueCount > 0).length;
+  const unassignedLeads = leadRows.filter(({ lead }) => !lead.owner_id).length;
+
+  if (leadsQuery.isLoading) {
+    return (
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 p-8">
+        <div className="rounded-[28px] border border-border/70 bg-card p-10 text-center shadow-sm">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="mt-4 text-sm font-medium text-muted-foreground">Sincronizando pipeline comercial...</p>
         </div>
       </div>
+    );
+  }
 
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-        {isLoading && (
-          <div className="p-12 text-center text-muted-foreground flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-sm font-medium animate-pulse">Sincronizando base de leads...</p>
-          </div>
-        )}
-        
-        {isError && (
-          <div className="p-12 text-center text-destructive flex flex-col items-center gap-2">
-            <div className="p-3 bg-destructive/10 rounded-full">
-              <span className="text-xl font-bold">!</span>
-            </div>
-            <p className="font-semibold text-sm">Falha na conexão com o banco de dados.</p>
-            <p className="text-xs opacity-70">{(error as Error).message}</p>
-          </div>
-        )}
-
-        {!isLoading && !isError && leads && leads.length === 0 && (
-          <div className="p-16 text-center text-muted-foreground flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-               <span className="text-2xl mt-1">📭</span>
-            </div>
-            <div>
-              <p className="font-bold text-lg">Sem leads no momento</p>
-              <p className="text-sm opacity-60">Aguardando novas capturas da Landing Page.</p>
-            </div>
-          </div>
-        )}
-
-        {!isLoading && !isError && leads && leads.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-muted/50 text-foreground/70 border-b border-border uppercase text-[10px] tracking-widest font-bold">
-                <tr>
-                  <th className="px-6 py-4">Contato / Empresa</th>
-                  <th className="px-6 py-4">Status / Origem</th>
-                  <th className="px-6 py-4">Data de Entrada</th>
-                  <th className="px-6 py-4 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-muted/30 transition-all duration-200 group">
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-foreground">{lead.nome || "Não informado"}</div>
-                      <div className="text-xs opacity-50 flex flex-col">
-                        <span>{lead.email}</span>
-                        <span className="italic">{lead.empresa}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="mb-2">
-                        <span className={`uppercase text-[10px] font-bold tracking-wider px-2 py-1 rounded-md border ${
-                          (lead.pipeline_stage || lead.status) === 'ganho' ? 'bg-secondary/10 text-secondary border-secondary/20' :
-                          (lead.pipeline_stage || lead.status) === 'perdido' ? 'bg-destructive/10 text-destructive border-destructive/20' :
-                          'bg-primary/10 text-primary border-primary/20'
-                        }`}>
-                          {lead.pipeline_stage || lead.status || "NOVO"}
-                        </span>
-                      </div>
-                      <div className="text-[10px] opacity-40 font-bold uppercase tracking-tight">{lead.whatsapp} • {lead.origem}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-xs font-semibold">{new Date(lead.created_at).toLocaleDateString('pt-BR')}</div>
-                      <div className="text-[10px] opacity-40 font-bold">{new Date(lead.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link 
-                        to={`/crm/leads/${lead.id}`} 
-                        className="inline-flex items-center px-4 py-2 rounded-lg bg-primary/5 text-primary text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-all shadow-sm active:scale-95"
-                      >
-                        Gerenciar
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+  if (leadsQuery.isError) {
+    return (
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 p-8">
+        <div className="rounded-[28px] border border-destructive/20 bg-destructive/5 p-10 text-center shadow-sm">
+          <AlertCircle className="mx-auto h-10 w-10 text-destructive" />
+          <p className="mt-4 text-lg font-semibold text-foreground">Nao foi possivel carregar os leads</p>
+          <p className="mt-2 text-sm text-muted-foreground">{(leadsQuery.error as Error).message}</p>
+          <Button className="mt-5" onClick={() => leadsQuery.refetch()}>
+            <RefreshCcw className="mr-2 h-4 w-4" />
+            Tentar novamente
+          </Button>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto flex max-w-7xl flex-col gap-6 p-8">
+      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Gestao de leads</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground">
+            Trabalhe ownership, proxima acao e etapa comercial no mesmo fluxo. O objetivo aqui e deixar claro quem esta
+            conduzindo cada lead e o que precisa acontecer a seguir.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border/70 bg-card px-4 py-3 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Visao atual</p>
+          <div className="mt-2 flex items-center gap-2">
+            <LeadStageBadge lead={{ pipeline_stage: null, status: "novo" }} className="text-[10px]" />
+            <p className="text-sm text-muted-foreground">Pipeline pronto para operar em lista e kanban.</p>
+          </div>
+        </div>
+      </header>
+
+      <LeadsWorkspaceToolbar
+        totalLeads={leadRows.length}
+        visibleLeads={filteredRows.length}
+        overdueLeads={overdueLeads}
+        unassignedLeads={unassignedLeads}
+        stageFilter={stageFilter}
+        responsibilityFilter={responsibilityFilter}
+        viewMode={viewMode}
+        onStageFilterChange={setStageFilter}
+        onResponsibilityFilterChange={setResponsibilityFilter}
+        onViewModeChange={setViewMode}
+      />
+
+      {tasksOverviewQuery.isError ? (
+        <div className="rounded-[28px] border border-amber-500/20 bg-amber-500/5 px-5 py-4 text-sm text-amber-700 shadow-sm dark:text-amber-300">
+          A leitura de pendencias do lead falhou nesta sincronizacao. A listagem continua disponivel, mas os indicadores
+          de follow-up podem estar incompletos.
+        </div>
+      ) : null}
+
+      {filteredRows.length === 0 ? (
+        <div className="rounded-[28px] border border-dashed border-border bg-card px-6 py-16 text-center shadow-sm">
+          <p className="text-lg font-semibold text-foreground">Nenhum lead encontrado neste recorte</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Ajuste os filtros de etapa ou ownership para voltar a ver a operacao.
+          </p>
+        </div>
+      ) : viewMode === "list" ? (
+        <LeadsResultsTable items={filteredRows} currentUserId={user?.id} />
+      ) : (
+        <LeadsKanbanBoard items={filteredRows} currentUserId={user?.id} />
+      )}
     </div>
   );
 };

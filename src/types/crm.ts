@@ -1,50 +1,42 @@
-// Tipos e Interfaces do CRM
-// Representam a modelagem de domínio estrita acordada previamente.
-
 export type PipelineStage = "novo" | "em_contato" | "qualificado" | "perdido" | "ganho";
 
 export interface CrmLead {
-  id: string; // UUID associado internamente no Postgres
+  id: string;
   nome: string;
   whatsapp: string;
   email?: string;
   empresa?: string;
   funcionarios?: number;
   origem: string;
-  
-  /** 
-   * @deprecated Utilize 'pipeline_stage' para novas lógicas de CRM.
-   * Mantido apenas para compatibilidade com leads capturados via Landing Page antiga.
-   */
-  status: string; 
-
-  /** Estágio atual no funil de vendas do CRM */
+  status: string;
   pipeline_stage: PipelineStage | null;
-
-  /** UUID do Representante/Admin responsável pelo lead */
-  owner_id: string | null; 
-
-  /** Valor estimado de fechamento ou histórico de compras */
+  owner_id: string | null;
   lifetime_value: number | null;
-  
-  created_at: string; // ISO 8601
-  updated_at: string; // Atualizado via moddatetime SQL trigger
+  created_at: string;
+  updated_at: string;
   last_interaction_at: string | null;
 }
 
-/** Representa uma ação de sistema ou mudança de estado no histórico do lead */
 export interface CrmLeadEvent {
   id: string;
   lead_id: string;
-  event_type: 'note_added' | 'task_added' | 'task_completed' | 'status_change' | 'pipeline_change' | 'lead_created';
-  payload: Record<string, any>;
+  event_type:
+    | "note_added"
+    | "task_added"
+    | "task_completed"
+    | "task_reopened"
+    | "status_change"
+    | "pipeline_change"
+    | "owner_changed"
+    | "lead_created";
+  payload: Record<string, unknown>;
   created_at: string;
 }
 
 export interface CrmLeadNote {
   id: string;
-  lead_id: string; // FK
-  author_id: string; // UUID user auth
+  lead_id: string;
+  author_id: string;
   content: string;
   created_at: string;
   updated_at: string;
@@ -52,11 +44,20 @@ export interface CrmLeadNote {
 
 export interface CrmLeadTask {
   id: string;
-  lead_id: string; // FK
-  assignee_id: string; // UUID user auth responsável
+  lead_id: string;
+  assignee_id: string;
   title: string;
   due_date: string;
   completed: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface CrmLeadTaskOverview {
+  id: string;
+  lead_id: string;
+  assignee_id: string;
+  title: string;
+  due_date: string;
+  completed: boolean;
 }

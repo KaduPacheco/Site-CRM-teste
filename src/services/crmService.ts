@@ -1,71 +1,35 @@
-import { CrmLead } from "@/types/crm";
 import { supabase } from "@/lib/supabase";
+import { CrmLead, CrmLeadEvent, CrmLeadNote, CrmLeadTask, CrmLeadTaskOverview, PipelineStage } from "@/types/crm";
 
-/**
- * Busca a listagem crua de Leads do banco.
- * Para uso exclusivo na Rota de CRM.
- * Agora utiliza o SDK autenticado para respeitar RLS.
- */
+interface LeadStageLookup {
+  id: string;
+  pipeline_stage: PipelineStage | null;
+  status: string;
+}
+
+interface LeadOwnerLookup {
+  id: string;
+  owner_id: string | null;
+}
+
 export async function getCrmLeads(): Promise<CrmLead[]> {
   const { data, error } = await supabase
-    .from('leads')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .from("leads")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (error) {
     throw new Error(`Falha ao buscar leads: ${error.message}`);
   }
 
-  return data as CrmLead[];
+  return (data ?? []) as CrmLead[];
 }
 
-/**
- * Registra um evento no histórico do lead (Audit Log).
- * @param leadId ID do lead associado.
- * @param eventType Tipo de evento (ex: 'note_added', 'task_completed').
- * @param payload Dados extras do evento.
- * @returns O evento registrado ou null em caso de erro.
- */
-export async function logLeadEvent(leadId: string, eventType: string, payload: any = {}) {
-  const { data, error } = await supabase
-    .from('lead_events')
-    .insert([{ lead_id: leadId, event_type: eventType, payload }])
-    .select()
-    .single();
-
-  if (error) {
-    // Audit failure: logamos no console para depuração mas não interrompemos o fluxo principal (UX first).
-    console.error(`[Audit Log Failure] Tentativa de registrar '${eventType}' para o lead ${leadId} falhou:`, error.message);
-  }
-
-  return data;
-}
-
-/**
- * Busca o histórico de eventos de sistema
- */
-export async function getLeadEvents(leadId: string) {
-  const { data, error } = await supabase
-    .from('lead_events')
-    .select('*')
-    .eq('lead_id', leadId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    throw new Error(`Falha ao buscar eventos: ${error.message}`);
-  }
-
-  return data;
-}
-
-/**
- * Busca detalhes de um Lead único
- */
 export async function getCrmLeadById(id: string): Promise<CrmLead> {
   const { data, error } = await supabase
-    .from('leads')
-    .select('*')
-    .eq('id', id)
+    .from("leads")
+    .select("*")
+    .eq("id", id)
     .single();
 
   if (error) {
@@ -73,41 +37,67 @@ export async function getCrmLeadById(id: string): Promise<CrmLead> {
   }
 
   if (!data) {
-    throw new Error("Lead não encontrado");
+    throw new Error("Lead nao encontrado");
   }
-  
+
   return data as CrmLead;
 }
 
-/**
- * Busca todas as notas de um lead específico
- */
-export async function getLeadNotes(leadId: string) {
+export async function logLeadEvent(
+  leadId: string,
+  eventType: CrmLeadEvent["event_type"],
+  payload: Record<string, unknown> = {},
+) {
   const { data, error } = await supabase
-    .from('lead_notes')
-    .select('*')
-    .eq('lead_id', leadId)
-    .order('created_at', { ascending: false });
+    .from("lead_events")
+    .insert([{ lead_id: leadId, event_type: eventType, payload }])
+    .select()
+    .single();
 
   if (error) {
-    throw new Error(`Falha ao buscar notas: ${error.message}`);
+    console.error(`[Audit Log Failure] Falha ao registrar '${eventType}' para o lead ${leadId}:`, error.message);
   }
 
   return data;
 }
 
-/**
- * Cria uma nova nota para um lead
- */
+export async function getLeadEvents(leadId: string): Promise<CrmLeadEvent[]> {
+  const { data, error } = await supabase
+    .from("lead_events")
+    .select("*")
+    .eq("lead_id", leadId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Falha ao buscar eventos: ${error.message}`);
+  }
+
+  return (data ?? []) as CrmLeadEvent[];
+}
+
+export async function getLeadNotes(leadId: string): Promise<CrmLeadNote[]> {
+  const { data, error } = await supabase
+    .from("lead_notes")
+    .select("*")
+    .eq("lead_id", leadId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(`Falha ao buscar notas: ${error.message}`);
+  }
+
+  return (data ?? []) as CrmLeadNote[];
+}
+
 export async function createLeadNote(leadId: string, content: string, authorId: string) {
   const { data, error } = await supabase
-    .from('lead_notes')
+    .from("lead_notes")
     .insert([
-      { 
-        lead_id: leadId, 
-        content, 
-        author_id: authorId 
-      }
+      {
+        lead_id: leadId,
+        content,
+        author_id: authorId,
+      },
     ])
     .select()
     .single();
@@ -116,35 +106,46 @@ export async function createLeadNote(leadId: string, content: string, authorId: 
     throw new Error(`Falha ao criar nota: ${error.message}`);
   }
 
-  // Registrar Evento
-  await logLeadEvent(leadId, 'note_added', { content_preview: content.substring(0, 50) });
+  await logLeadEvent(leadId, "note_added", { content_preview: content.substring(0, 80) });
 
   return data;
 }
 
-/**
- * Busca todas as tarefas de um lead
- */
-export async function getLeadTasks(leadId: string) {
+export async function getLeadTasks(leadId: string): Promise<CrmLeadTask[]> {
   const { data, error } = await supabase
-    .from('lead_tasks')
-    .select('*')
-    .eq('lead_id', leadId)
-    .order('due_date', { ascending: true });
+    .from("lead_tasks")
+    .select("*")
+    .eq("lead_id", leadId)
+    .order("due_date", { ascending: true });
 
   if (error) {
     throw new Error(`Falha ao buscar tarefas: ${error.message}`);
   }
 
-  return data;
+  return (data ?? []) as CrmLeadTask[];
 }
 
-/**
- * Cria uma nova tarefa para um lead
- */
-export async function createLeadTask(task: { lead_id: string, title: string, due_date: string, assignee_id: string }) {
+export async function getLeadTasksOverview(): Promise<CrmLeadTaskOverview[]> {
   const { data, error } = await supabase
-    .from('lead_tasks')
+    .from("lead_tasks")
+    .select("id,lead_id,assignee_id,title,due_date,completed")
+    .order("due_date", { ascending: true });
+
+  if (error) {
+    throw new Error(`Falha ao buscar visao operacional de tarefas: ${error.message}`);
+  }
+
+  return (data ?? []) as CrmLeadTaskOverview[];
+}
+
+export async function createLeadTask(task: {
+  lead_id: string;
+  title: string;
+  due_date: string;
+  assignee_id: string;
+}) {
+  const { data, error } = await supabase
+    .from("lead_tasks")
     .insert([task])
     .select()
     .single();
@@ -153,20 +154,16 @@ export async function createLeadTask(task: { lead_id: string, title: string, due
     throw new Error(`Falha ao criar tarefa: ${error.message}`);
   }
 
-  // Registrar Evento
-  await logLeadEvent(task.lead_id, 'task_added', { title: task.title });
+  await logLeadEvent(task.lead_id, "task_added", { title: task.title, due_date: task.due_date });
 
   return data;
 }
 
-/**
- * Atualiza o status de conclusão de uma tarefa
- */
 export async function updateTaskStatus(taskId: string, completed: boolean) {
   const { data, error } = await supabase
-    .from('lead_tasks')
+    .from("lead_tasks")
     .update({ completed, updated_at: new Date().toISOString() })
-    .eq('id', taskId)
+    .eq("id", taskId)
     .select()
     .single();
 
@@ -174,8 +171,110 @@ export async function updateTaskStatus(taskId: string, completed: boolean) {
     throw new Error(`Falha ao atualizar tarefa: ${error.message}`);
   }
 
-  // Registrar Evento
-  await logLeadEvent(data.lead_id, completed ? 'task_completed' : 'task_reopened', { title: data.title });
+  await logLeadEvent(data.lead_id, completed ? "task_completed" : "task_reopened", { title: data.title });
 
   return data;
+}
+
+export async function updateLeadPipelineStage(leadId: string, nextStage: PipelineStage) {
+  const currentLead = await getLeadStageLookup(leadId);
+  const previousStage = normalizeLeadStage(currentLead.pipeline_stage, currentLead.status);
+
+  const { data, error } = await supabase
+    .from("leads")
+    .update({
+      pipeline_stage: nextStage,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", leadId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Falha ao atualizar etapa do lead: ${error.message}`);
+  }
+
+  if (previousStage !== nextStage) {
+    await logLeadEvent(leadId, "pipeline_change", {
+      previous_stage: previousStage,
+      next_stage: nextStage,
+    });
+  }
+
+  return data as CrmLead;
+}
+
+export async function updateLeadOwner(leadId: string, nextOwnerId: string | null) {
+  const currentLead = await getLeadOwnerLookup(leadId);
+
+  const { data, error } = await supabase
+    .from("leads")
+    .update({
+      owner_id: nextOwnerId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", leadId)
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Falha ao atualizar responsavel do lead: ${error.message}`);
+  }
+
+  if (currentLead.owner_id !== nextOwnerId) {
+    await logLeadEvent(leadId, "owner_changed", {
+      previous_owner_id: currentLead.owner_id,
+      next_owner_id: nextOwnerId,
+    });
+  }
+
+  return data as CrmLead;
+}
+
+async function getLeadStageLookup(leadId: string) {
+  const { data, error } = await supabase
+    .from("leads")
+    .select("id,pipeline_stage,status")
+    .eq("id", leadId)
+    .single();
+
+  if (error) {
+    throw new Error(`Falha ao ler etapa atual do lead: ${error.message}`);
+  }
+
+  return data as LeadStageLookup;
+}
+
+async function getLeadOwnerLookup(leadId: string) {
+  const { data, error } = await supabase
+    .from("leads")
+    .select("id,owner_id")
+    .eq("id", leadId)
+    .single();
+
+  if (error) {
+    throw new Error(`Falha ao ler ownership atual do lead: ${error.message}`);
+  }
+
+  return data as LeadOwnerLookup;
+}
+
+function normalizeLeadStage(pipelineStage: PipelineStage | null, status: string) {
+  if (pipelineStage) {
+    return pipelineStage;
+  }
+
+  const normalizedStatus = status.trim().toLowerCase();
+
+  if (
+    normalizedStatus === "novo"
+    || normalizedStatus === "em_contato"
+    || normalizedStatus === "qualificado"
+    || normalizedStatus === "ganho"
+    || normalizedStatus === "perdido"
+  ) {
+    return normalizedStatus as PipelineStage;
+  }
+
+  return null;
 }
