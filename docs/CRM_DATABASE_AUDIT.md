@@ -1,31 +1,32 @@
 # Auditoria de Infraestrutura de Banco (CRM)
 
-Este documento centraliza a auditoria do estado desejado do banco de dados no Supabase, deduzido a partir da implementação front-end atual da aplicação. A meta é estabelecer a infraestrutura mínima viável para o CRM sem quebrar a captura de leads da Landing Page.
+Este documento centraliza a auditoria do estado desejado do banco de dados no Supabase, deduzido a partir da implementacao front-end atual da aplicacao. A meta e estabelecer a infraestrutura minima viavel para o CRM sem quebrar a captura de leads da landing page.
 
-## 1. Inventário de Tabelas Esperadas
+## 1. Inventario de Tabelas Esperadas
 
-O front-end hoje faz requisições (via `supabase-js`) para **4 tabelas principais**.
+O front-end hoje faz requisicoes (via `supabase-js`) para **5 tabelas principais**.
 
-### 1.1 Tabela: `leads` (Tabela Core - Híbrida)
-Os dados trafegam pela Landing (inserção cega) e pelo CRM (leitura/edição).
-**Colunas Esperadas (`src/types/crm.ts`):**
+### 1.1 Tabela: `leads` (Tabela Core - Hibrida)
+Os dados trafegam pela landing (insercao cega) e pelo CRM (leitura e edicao).
+
+**Colunas esperadas (`src/types/crm.ts`):**
 - `id` (UUID, Primary Key)
 - `nome` (Text, Not Null)
 - `whatsapp` (Text, Not Null)
 - `email` (Text, Nullable)
 - `empresa` (Text, Nullable)
 - `funcionarios` (Int, Nullable)
-- `origem` (Text, Default 'landing_page')
-- `status` (Text, Default 'novo' - *Campo Legado LP*)
-- `pipeline_stage` (Text, Nullable - *Campo Novo CRM*)
-- `owner_id` (UUID, Nullable, FK `auth.users` - *Campo Novo CRM*)
-- `lifetime_value` (Numeric/Decimal, Nullable - *Campo Novo CRM*)
+- `origem` (Text, Default `landing_page`)
+- `status` (Text, Default `novo`, campo legado da landing)
+- `pipeline_stage` (Text, Nullable, campo novo do CRM)
+- `owner_id` (UUID, Nullable, FK `auth.users`, campo novo do CRM)
+- `lifetime_value` (Numeric, Nullable, campo novo do CRM)
 - `created_at` (TimestampTZ)
 - `updated_at` (TimestampTZ)
 - `last_interaction_at` (TimestampTZ, Nullable)
 
 ### 1.2 Tabela: `lead_notes` (Exclusiva CRM)
-**Colunas Esperadas:**
+**Colunas esperadas:**
 - `id` (UUID, Primary Key)
 - `lead_id` (UUID, Not Null, FK `leads.id`)
 - `author_id` (UUID, Not Null, FK `auth.users`)
@@ -34,61 +35,80 @@ Os dados trafegam pela Landing (inserção cega) e pelo CRM (leitura/edição).
 - `updated_at` (TimestampTZ)
 
 ### 1.3 Tabela: `lead_tasks` (Exclusiva CRM)
-**Colunas Esperadas:**
+**Colunas esperadas:**
 - `id` (UUID, Primary Key)
 - `lead_id` (UUID, Not Null, FK `leads.id`)
 - `assignee_id` (UUID, Not Null, FK `auth.users`)
 - `title` (Text, Not Null)
 - `due_date` (TimestampTZ, Not Null)
-- `completed` (Boolean, Default false)
+- `completed` (Boolean, Default `false`)
 - `created_at` (TimestampTZ)
 - `updated_at` (TimestampTZ)
 
 ### 1.4 Tabela: `lead_events` (Exclusiva CRM - Timeline)
-**Colunas Esperadas:**
+**Colunas esperadas:**
 - `id` (UUID, Primary Key)
 - `lead_id` (UUID, Not Null, FK `leads.id`)
 - `event_type` (Text, Not Null)
-- `payload` (JSONB, Default '{}')
+- `payload` (JSONB, Default `{}`)
 - `created_at` (TimestampTZ)
+
+### 1.5 Tabela: `analytics_events` (Landing + Dashboard CRM)
+**Colunas esperadas:**
+- `id` (UUID, Primary Key)
+- `event_type` (Text, Not Null)
+- `visitor_id` (Text, Not Null)
+- `session_id` (Text, Not Null)
+- `occurred_at` (TimestampTZ)
+- `page_path` (Text, Not Null)
+- `page_url` (Text, Not Null)
+- `referrer` (Text, Nullable)
+- `utm_source` (Text, Nullable)
+- `utm_medium` (Text, Nullable)
+- `utm_campaign` (Text, Nullable)
+- `utm_content` (Text, Nullable)
+- `utm_term` (Text, Nullable)
+- `metadata` (JSONB, Default `{}`)
 
 ---
 
-## 2. Inconsistências Identificadas (Frontend vs SQL Documentado)
+## 2. Inconsistencias Identificadas
 
-1. **Tabela `leads` Incompleta**: O script `01_rls_leads.sql` assume que a tabela `leads` já existe com a modelagem antiga da Landing Page. Ele não possui as instruções `ALTER TABLE` para incluir as novas colunas do CRM (`pipeline_stage`, `owner_id`, `lifetime_value`, `last_interaction_at`).
-2. **Ausência de Triggers**: O schema Typescript prevê a coluna `updated_at` auto-atualizada, mas não há documentação ou script criando o trigger de banco (ex: extensão `moddatetime`) para mantê-la sincronizada de forma segura via banco.
-3. **Ausência da Migração de Criação Inicial**: Não há arquivo consolidando o "CREATE TABLE leads" base no repositório `docs/sql/`.
+1. A tabela `leads` original nao documenta no repositrio a extensao completa para `pipeline_stage`, `owner_id`, `lifetime_value` e `last_interaction_at`.
+2. Nao ha script consolidado de criacao inicial da tabela `leads` base em `docs/sql/`.
+3. A camada de analytics precisou ganhar uma migracao propria (`docs/sql/05_analytics_events.sql`) para alinhar tracking da landing e leitura autenticada do dashboard.
 
-## 3. Triggers, Índices e Policies Recomendados
+## 3. Triggers, Indices e Policies Recomendados
 
-### Triggers Essenciais
-- **moddatetime**: Na tabela `leads`, `lead_tasks` e `lead_notes` na coluna `updated_at` para atualizar automaticamente em cada `UPDATE`.
-- Opcional: Trigger de *update* na tabela `leads` para registrar `last_interaction_at` quando uma nota for inserida (desacoplamento back-end > front-end).
+### Triggers essenciais
+- `moddatetime` em `leads`, `lead_tasks` e `lead_notes` na coluna `updated_at`.
+- Trigger opcional de interacao em `leads.last_interaction_at` quando nota, tarefa ou evento relevante forem registrados.
 
-### Índices de Performance Recomendados
-- `leads(pipeline_stage, created_at)`: Para o pipeline board.
-- `lead_notes(lead_id)`: Para carregamento rápido do dossiê.
-- `lead_tasks(lead_id, due_date)`: Para alertas de tarefas vencidas.
-- `lead_events(lead_id, created_at)`: Para a timeline imutável.
+### Indices de performance recomendados
+- `leads(pipeline_stage, created_at)` para pipeline board.
+- `lead_notes(lead_id)` para dossie do lead.
+- `lead_tasks(lead_id, due_date)` para alertas operacionais.
+- `lead_events(lead_id, created_at)` para timeline.
+- `analytics_events(event_type, occurred_at)` para funil e serie temporal.
+- `analytics_events(visitor_id, session_id)` para analise de visitors e sessoes.
 
-### Matriz de Segurança (RLS Policies)
+### Matriz de seguranca (RLS policies)
 
 | Alvo | Origem | Acesso | Justificativa |
 | :--- | :--- | :--- | :--- |
-| `leads` | Anon | **INSERT** | A Landing Page capta os leads livremente sem estar logada. |
-| `leads` | Auth | **ALL** | O CRM visualiza, edita e deleta (em casos extremos). |
-| `lead_notes` | Auth | **ALL** | Apenas usuários logados visualizam e manipulam notas. |
-| `lead_tasks` | Auth | **ALL** | Apenas usuários logados criam e concluem tarefas. |
-| `lead_events` | Auth | **SELECT/INSERT** | Histórico/Audit trail (não pode ter UPDATE/DELETE). |
+| `leads` | Anon | **INSERT** | A landing capta leads sem login. |
+| `leads` | Auth | **ALL** | O CRM autenticado visualiza, edita e trata ownership e pipeline. |
+| `lead_notes` | Auth | **ALL** | Apenas usuarios logados manipulam notas. |
+| `lead_tasks` | Auth | **ALL** | Apenas usuarios logados manipulam tarefas. |
+| `lead_events` | Auth | **SELECT/INSERT** | Timeline imutavel de auditoria comercial. |
+| `analytics_events` | Anon | **INSERT** | A landing precisa gravar `page_view`, `cta_click` e eventos do formulario sem login. |
+| `analytics_events` | Auth | **SELECT/INSERT** | O dashboard autenticado precisa ler analytics reais e o app autenticado pode registrar eventos adicionais. |
 
 ---
 
-## 4. Ordem Segura de Criação (Proposição)
+## 4. Ordem Segura de Criacao
 
-Para não quebrarmos a Home (que já faz insert simples no `leads` antigo), a ordem de execução no painel do Supabase DEVERÁ ser rigorosamente:
-
-1. **Script 00**: Habilitar extensões necessárias (ex: `uuid-ossp`, `moddatetime`).
-2. **Script 01**: Extender a tabela `leads` com as colunas novas `pipeline_stage`, `owner_id` (todas explicitamente `NULLABLE` para não estourar o forms da LP) e aplicar as Políticas de Segurança (RLS).
-3. **Script 02-04**: Criar as tabelas dependentes (notas, tarefas, eventos) usando Foreign Keys limitando `ON DELETE CASCADE`.
-4. **Script 05**: Aplicar todos os Triggers para data de atualização e Inteligência (se as preferirmos na camada do PostgreSQL).
+1. Script 00: habilitar extensoes necessarias (`uuid-ossp`, `moddatetime`).
+2. Script 01: estender `leads` com as colunas novas do CRM e aplicar RLS.
+3. Script 02 a 04: criar `lead_notes`, `lead_tasks` e `lead_events`.
+4. Script 05: criar `analytics_events`, indices e policies de `INSERT anon` + `SELECT authenticated`.

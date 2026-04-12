@@ -5,9 +5,15 @@ import {
   ArrowRight,
   BriefcaseBusiness,
   CalendarClock,
+  MousePointerClick,
+  SendHorizontal,
+  TrendingUp,
+  UsersRound,
   LayoutDashboard,
   Users,
 } from "lucide-react";
+import AnalyticsFunnelChart from "@/components/crm/dashboard/AnalyticsFunnelChart";
+import AnalyticsSourcesChart from "@/components/crm/dashboard/AnalyticsSourcesChart";
 import AttentionPanel from "@/components/crm/dashboard/AttentionPanel";
 import ActivityFeed from "@/components/crm/dashboard/ActivityFeed";
 import KpiCard from "@/components/crm/dashboard/KpiCard";
@@ -18,6 +24,9 @@ import UpcomingTasksList from "@/components/crm/dashboard/UpcomingTasksList";
 import { Button } from "@/components/ui/Button";
 import {
   buildActivityFeed,
+  buildAnalyticsFunnel,
+  buildAnalyticsKpis,
+  buildAnalyticsSourceDistribution,
   buildAttentionPanel,
   buildLeadKpis,
   buildPipelineDistribution,
@@ -25,6 +34,7 @@ import {
   buildSourceDistribution,
   buildTaskKpis,
   buildUpcomingTasks,
+  getDashboardAnalyticsDataset,
   getDashboardEventsDataset,
   getDashboardLeadsDataset,
   getDashboardTasksDataset,
@@ -49,11 +59,20 @@ const DashboardPage = () => {
     staleTime: 20_000,
   });
 
+  const analyticsQuery = useQuery({
+    queryKey: ["crm-dashboard", "analytics"],
+    queryFn: () => getDashboardAnalyticsDataset(30, 1500),
+    staleTime: 20_000,
+  });
+
   const leadMetrics = leadsQuery.data ? buildLeadKpis(leadsQuery.data) : [];
   const taskMetrics = tasksQuery.data ? buildTaskKpis(tasksQuery.data) : [];
+  const analyticsMetrics = analyticsQuery.data ? buildAnalyticsKpis(analyticsQuery.data) : [];
 
   const pipelineData = leadsQuery.data ? buildPipelineDistribution(leadsQuery.data) : [];
   const sourceData = leadsQuery.data ? buildSourceDistribution(leadsQuery.data) : [];
+  const analyticsFunnelData = analyticsQuery.data ? buildAnalyticsFunnel(analyticsQuery.data) : [];
+  const analyticsSourceData = analyticsQuery.data ? buildAnalyticsSourceDistribution(analyticsQuery.data) : [];
   const recentLeads = leadsQuery.data ? buildRecentLeads(leadsQuery.data) : [];
   const upcomingTasks = tasksQuery.data ? buildUpcomingTasks(tasksQuery.data, leadsQuery.data) : [];
   const activityFeed = eventsQuery.data ? buildActivityFeed(eventsQuery.data, leadsQuery.data) : [];
@@ -64,6 +83,7 @@ const DashboardPage = () => {
     leadsQuery.dataUpdatedAt || 0,
     tasksQuery.dataUpdatedAt || 0,
     eventsQuery.dataUpdatedAt || 0,
+    analyticsQuery.dataUpdatedAt || 0,
   );
 
   return (
@@ -81,8 +101,8 @@ const DashboardPage = () => {
                 Acompanhe volume, execucao comercial e pontos de atencao em um so lugar.
               </h1>
               <p className="max-w-2xl text-sm leading-7 text-muted-foreground lg:text-base">
-                O dashboard consolida pipeline, origens, follow-ups e atividade recente usando apenas os dados ja
-                disponiveis no CRM autenticado.
+                O dashboard consolida pipeline, operacao comercial e analytics reais da landing usando os dados
+                autenticados do CRM e o tracking gravado no banco.
               </p>
             </div>
           </div>
@@ -91,7 +111,7 @@ const DashboardPage = () => {
             <div className="rounded-3xl border border-border/70 bg-background/80 p-4 backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Status</p>
               <p className="mt-3 text-sm font-medium text-foreground">
-                {leadsQuery.isError || tasksQuery.isError || eventsQuery.isError
+                {leadsQuery.isError || tasksQuery.isError || eventsQuery.isError || analyticsQuery.isError
                   ? "Algumas secoes exigem revisao"
                   : "Dashboard sincronizado"}
               </p>
@@ -139,6 +159,33 @@ const DashboardPage = () => {
         />
       </section>
 
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          metric={analyticsMetrics.find((metric) => metric.id === "landing_visitors")}
+          icon={UsersRound}
+          isLoading={analyticsQuery.isLoading}
+          errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
+        />
+        <KpiCard
+          metric={analyticsMetrics.find((metric) => metric.id === "landing_cta_clicks")}
+          icon={MousePointerClick}
+          isLoading={analyticsQuery.isLoading}
+          errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
+        />
+        <KpiCard
+          metric={analyticsMetrics.find((metric) => metric.id === "landing_submit_success")}
+          icon={SendHorizontal}
+          isLoading={analyticsQuery.isLoading}
+          errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
+        />
+        <KpiCard
+          metric={analyticsMetrics.find((metric) => metric.id === "landing_conversion_rate")}
+          icon={TrendingUp}
+          isLoading={analyticsQuery.isLoading}
+          errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
+        />
+      </section>
+
       <section className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
         <PipelineChart
           data={pipelineData}
@@ -149,6 +196,19 @@ const DashboardPage = () => {
           data={sourceData}
           isLoading={leadsQuery.isLoading}
           errorMessage={leadsQuery.isError ? getErrorMessage(leadsQuery.error) : undefined}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
+        <AnalyticsFunnelChart
+          data={analyticsFunnelData}
+          isLoading={analyticsQuery.isLoading}
+          errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
+        />
+        <AnalyticsSourcesChart
+          data={analyticsSourceData}
+          isLoading={analyticsQuery.isLoading}
+          errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
         />
       </section>
 

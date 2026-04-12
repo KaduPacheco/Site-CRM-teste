@@ -1,10 +1,11 @@
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { Button } from "@/components/ui/Button";
 import { Check, Clock, Zap } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { trackCtaClick } from "@/services/analyticsService";
 
 const features = [
   "Registro de ponto digital",
-  "Relatórios automáticos",
+  "Relatorios automaticos",
   "Controle de horas extras",
   "Banco de horas",
   "App mobile",
@@ -16,66 +17,76 @@ const Pricing = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section id="precos" className="py-20 bg-section-alt">
+    <section id="precos" className="bg-section-alt py-20">
       <div className="container" ref={ref}>
-        <div className="text-center mb-14">
-          <span className="text-sm font-semibold text-primary uppercase tracking-wider">Preço especial</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground mt-2">
-            Pode custar menos do que{" "}
-            <span className="text-secondary">um único erro</span>
+        <div className="mb-14 text-center">
+          <span className="text-sm font-semibold uppercase tracking-wider text-primary">Preco especial</span>
+          <h2 className="mt-2 text-3xl font-extrabold text-foreground md:text-4xl">
+            Pode custar menos do que <span className="text-secondary">um unico erro</span>
           </h2>
-          <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
-            Processos trabalhistas podem gerar custos não previstos. Nosso sistema ajuda a mitigar esses riscos por um preço acessível.
+          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
+            Processos trabalhistas podem gerar custos nao previstos. Nosso sistema ajuda a mitigar esses riscos por um preco acessivel.
           </p>
         </div>
 
-        <div className="max-w-lg mx-auto">
+        <div className="mx-auto max-w-lg">
           <div
-            className={`relative rounded-2xl bg-hero-gradient text-primary-foreground shadow-2xl overflow-hidden ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+            className={`relative overflow-hidden rounded-2xl bg-hero-gradient text-primary-foreground shadow-2xl ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
           >
-            {/* Badge especial */}
-            <div className="absolute top-0 right-0">
-              <div className="bg-secondary text-secondary-foreground text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-bl-xl flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                Condição especial
+            <div className="absolute right-0 top-0">
+              <div className="flex items-center gap-1.5 rounded-bl-xl bg-secondary px-4 py-2 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                Condicao especial
               </div>
             </div>
 
             <div className="p-10 pt-14">
-              <div className="flex items-center gap-2 mb-1">
-                <Zap className="w-5 h-5 text-secondary" />
+              <div className="mb-1 flex items-center gap-2">
+                <Zap className="h-5 w-5 text-secondary" />
                 <h3 className="text-xl font-bold">Plano Completo</h3>
               </div>
-              <p className="text-sm opacity-80 mb-6">Tudo que você precisa para controlar a jornada da sua equipe</p>
+              <p className="mb-6 text-sm opacity-80">Tudo que voce precisa para controlar a jornada da sua equipe</p>
 
               <div className="mb-2">
                 <span className="text-5xl font-extrabold">R$59,90</span>
-                <span className="text-lg opacity-70">/mês</span>
+                <span className="text-lg opacity-70">/mes</span>
               </div>
-              <p className="text-sm opacity-80 mb-2">Para até 5 funcionários</p>
-              <p className="text-sm opacity-90 font-semibold mb-8 bg-primary-foreground/10 inline-block px-3 py-1 rounded-lg">
-                + R$7,00 por funcionário adicional
+              <p className="mb-2 text-sm opacity-80">Para ate 5 funcionarios</p>
+              <p className="mb-8 inline-block rounded-lg bg-primary-foreground/10 px-3 py-1 text-sm font-semibold opacity-90">
+                + R$7,00 por funcionario adicional
               </p>
 
-              <ul className="space-y-3 mb-8">
-                {features.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 shrink-0 text-secondary" />
-                    {f}
+              <ul className="mb-8 space-y-3">
+                {features.map((feature) => (
+                  <li key={feature} className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 shrink-0 text-secondary" />
+                    {feature}
                   </li>
                 ))}
               </ul>
 
               <Button
                 variant="hero"
-                className="w-full h-14 rounded-xl bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                className="h-14 w-full rounded-xl bg-secondary text-secondary-foreground hover:bg-secondary/90"
                 asChild
               >
-                <a href="#contato">Aproveitar condição especial</a>
+                <a
+                  href="#contato"
+                  onClick={() => {
+                    void trackCtaClick({
+                      cta_id: "pricing_cta_aproveitar_condicao",
+                      cta_label: "Aproveitar condicao especial",
+                      placement: "pricing",
+                      target: "#contato",
+                    });
+                  }}
+                >
+                  Aproveitar condicao especial
+                </a>
               </Button>
 
-              <p className="text-center text-xs opacity-70 mt-4">
-                ⚡ Teste grátis por 14 dias. Planos flexíveis conforme sua necessidade.
+              <p className="mt-4 text-center text-xs opacity-70">
+                Teste gratis por 14 dias. Planos flexiveis conforme sua necessidade.
               </p>
             </div>
           </div>

@@ -1,7 +1,7 @@
 export type DashboardMetricTone = "neutral" | "positive" | "warning" | "danger";
 
 export interface DashboardKpi {
-  id: "total_leads" | "new_leads" | "open_tasks" | "overdue_tasks";
+  id: string;
   label: string;
   value: number;
   description: string;

@@ -30,6 +30,22 @@ type DashboardTaskRecord = Pick<
 >;
 
 type DashboardEventRecord = Pick<CrmLeadEvent, "id" | "lead_id" | "event_type" | "payload" | "created_at">;
+type DashboardAnalyticsEventRecord = {
+  id: string;
+  event_type: string;
+  visitor_id: string;
+  session_id: string;
+  occurred_at: string;
+  page_path: string;
+  page_url: string;
+  referrer: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  metadata: Record<string, unknown>;
+};
 
 const PIPELINE_COLORS: Record<string, string> = {
   novo: "#2563eb",
@@ -41,8 +57,16 @@ const PIPELINE_COLORS: Record<string, string> = {
 };
 
 const SOURCE_COLORS = ["#2563eb", "#0f766e", "#7c3aed", "#ea580c", "#dc2626", "#0891b2", "#64748b"];
+const ANALYTICS_FUNNEL_COLORS = ["#2563eb", "#0f766e", "#f59e0b", "#7c3aed", "#16a34a"];
 
 const PIPELINE_ORDER = ["novo", "em_contato", "qualificado", "ganho", "perdido", "sem_estagio"];
+const ANALYTICS_FUNNEL_ORDER = [
+  "page_view",
+  "cta_click",
+  "lead_form_start",
+  "lead_form_submit_attempt",
+  "lead_form_submit_success",
+] as const;
 
 export async function getDashboardLeadsDataset(): Promise<DashboardLeadRecord[]> {
   const { data, error } = await supabase
@@ -82,6 +106,26 @@ export async function getDashboardEventsDataset(limit = 10): Promise<DashboardEv
   }
 
   return (data ?? []) as DashboardEventRecord[];
+}
+
+export async function getDashboardAnalyticsDataset(days = 30, limit = 1000): Promise<DashboardAnalyticsEventRecord[]> {
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  const { data, error } = await supabase
+    .from("analytics_events")
+    .select(
+      "id,event_type,visitor_id,session_id,occurred_at,page_path,page_url,referrer,utm_source,utm_medium,utm_campaign,utm_term,utm_content,metadata",
+    )
+    .gte("occurred_at", since.toISOString())
+    .order("occurred_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(`Falha ao carregar analytics do dashboard: ${error.message}`);
+  }
+
+  return (data ?? []) as DashboardAnalyticsEventRecord[];
 }
 
 export function buildLeadKpis(leads: DashboardLeadRecord[]): DashboardKpi[] {
@@ -137,6 +181,49 @@ export function buildTaskKpis(tasks: DashboardTaskRecord[]): DashboardKpi[] {
   ];
 }
 
+export function buildAnalyticsKpis(events: DashboardAnalyticsEventRecord[]): DashboardKpi[] {
+  const uniqueVisitors = new Set(events.map((event) => event.visitor_id).filter(Boolean)).size;
+  const ctaClicks = events.filter((event) => event.event_type === "cta_click").length;
+  const submitSuccess = events.filter((event) => event.event_type === "lead_form_submit_success").length;
+  const submitErrors = events.filter((event) => event.event_type === "lead_form_submit_error").length;
+  const conversionRate = uniqueVisitors > 0 ? Number(((submitSuccess / uniqueVisitors) * 100).toFixed(1)) : 0;
+
+  return [
+    {
+      id: "landing_visitors",
+      label: "Visitors unicos",
+      value: uniqueVisitors,
+      description: "Visitantes identificados pelo tracking real da landing.",
+      helperText: "Base de analytics da landing.",
+      tone: uniqueVisitors > 0 ? "positive" : "neutral",
+    },
+    {
+      id: "landing_cta_clicks",
+      label: "Cliques em CTA",
+      value: ctaClicks,
+      description: "Interacoes registradas nos principais gatilhos comerciais da landing.",
+      helperText: "Eventos cta_click.",
+      tone: ctaClicks > 0 ? "positive" : "neutral",
+    },
+    {
+      id: "landing_submit_success",
+      label: "Conversoes",
+      value: submitSuccess,
+      description: "Envios concluidos com sucesso pelo formulario da landing.",
+      helperText: submitErrors > 0 ? `${submitErrors} erros capturados no periodo.` : "Sem erros de submit no periodo.",
+      tone: submitSuccess > 0 ? "positive" : submitErrors > 0 ? "warning" : "neutral",
+    },
+    {
+      id: "landing_conversion_rate",
+      label: "Taxa de conversao",
+      value: conversionRate,
+      description: "Conversoes sobre visitors unicos rastreados no periodo.",
+      helperText: "Percentual de lead_form_submit_success.",
+      tone: conversionRate > 0 ? "positive" : "neutral",
+    },
+  ];
+}
+
 export function buildPipelineDistribution(leads: DashboardLeadRecord[]): DashboardChartDatum[] {
   const counts = new Map<string, number>();
 
@@ -178,6 +265,59 @@ export function buildSourceDistribution(leads: DashboardLeadRecord[]): Dashboard
   const total = leads.length || 1;
 
   return topSources.map(([label, value], index) => ({
+    id: label.toLowerCase().replace(/\s+/g, "_"),
+    label,
+    value,
+    percentage: Number(((value / total) * 100).toFixed(1)),
+    color: SOURCE_COLORS[index % SOURCE_COLORS.length],
+  }));
+}
+
+export function buildAnalyticsFunnel(events: DashboardAnalyticsEventRecord[]): DashboardChartDatum[] {
+  const counts = new Map<string, number>();
+
+  ANALYTICS_FUNNEL_ORDER.forEach((eventType) => {
+    counts.set(eventType, 0);
+  });
+
+  events.forEach((event) => {
+    if (!counts.has(event.event_type)) {
+      return;
+    }
+
+    counts.set(event.event_type, (counts.get(event.event_type) ?? 0) + 1);
+  });
+
+  const base = counts.get("page_view") || 0;
+
+  return ANALYTICS_FUNNEL_ORDER.map((eventType, index) => {
+    const value = counts.get(eventType) ?? 0;
+    const percentage = base > 0 ? Number(((value / base) * 100).toFixed(1)) : 0;
+
+    return {
+      id: eventType,
+      label: getAnalyticsEventLabel(eventType),
+      value,
+      percentage,
+      color: ANALYTICS_FUNNEL_COLORS[index % ANALYTICS_FUNNEL_COLORS.length],
+    };
+  });
+}
+
+export function buildAnalyticsSourceDistribution(events: DashboardAnalyticsEventRecord[]): DashboardChartDatum[] {
+  const counts = new Map<string, number>();
+
+  events
+    .filter((event) => event.event_type === "page_view")
+    .forEach((event) => {
+      const source = getAnalyticsSourceLabel(event);
+      counts.set(source, (counts.get(source) ?? 0) + 1);
+    });
+
+  const ordered = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  const total = ordered.reduce((sum, [, value]) => sum + value, 0) || 1;
+
+  return ordered.slice(0, 6).map(([label, value], index) => ({
     id: label.toLowerCase().replace(/\s+/g, "_"),
     label,
     value,
@@ -401,6 +541,43 @@ function getEventDescription(event: DashboardEventRecord) {
 function getPayloadString(payload: Record<string, unknown>, key: string) {
   const value = payload[key];
   return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function getAnalyticsEventLabel(eventType: (typeof ANALYTICS_FUNNEL_ORDER)[number]) {
+  switch (eventType) {
+    case "page_view":
+      return "Page view";
+    case "cta_click":
+      return "CTA click";
+    case "lead_form_start":
+      return "Inicio do formulario";
+    case "lead_form_submit_attempt":
+      return "Tentativa de envio";
+    case "lead_form_submit_success":
+      return "Envio com sucesso";
+    default:
+      return toTitleCase(eventType);
+  }
+}
+
+function getAnalyticsSourceLabel(event: DashboardAnalyticsEventRecord) {
+  const utmSource = (event.utm_source || "").trim();
+
+  if (utmSource) {
+    return `UTM: ${utmSource}`;
+  }
+
+  const referrer = (event.referrer || "").trim();
+
+  if (!referrer) {
+    return "Direto";
+  }
+
+  try {
+    return new URL(referrer).hostname.replace(/^www\./, "");
+  } catch {
+    return referrer;
+  }
 }
 
 function sortPipelineEntries(a: string, b: string) {

@@ -1,66 +1,155 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { CheckCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { CheckCircle, Send } from "lucide-react";
 import { useToast } from "@/hooks/useToast";
 import { leadSchema } from "@/lib/validations";
+import {
+  trackLeadFormStart,
+  trackLeadFormSubmitAttempt,
+  trackLeadFormSubmitError,
+  trackLeadFormSubmitSuccess,
+} from "@/services/analyticsService";
 import { submitLeadToSupabase } from "@/services/leadService";
+
+const FORM_ID = "landing_lead_form";
+const SECTION_ID = "contato";
 
 const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const { ref, isVisible } = useScrollAnimation();
   const { toast } = useToast();
-  const [form, setForm] = useState({ name: "", whatsapp: "", email: "", empresa: "", employees: "", bot_field: "" });
+  const [form, setForm] = useState({
+    name: "",
+    whatsapp: "",
+    email: "",
+    empresa: "",
+    employees: "",
+    bot_field: "",
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const startTime = useState(() => Date.now())[0]; // Bloqueio de envio muito rápido (bot)
+  const [startTime] = useState(() => Date.now());
+  const hasTrackedStartRef = useRef(false);
+
+  const handleFormStart = () => {
+    if (hasTrackedStartRef.current) {
+      return;
+    }
+
+    hasTrackedStartRef.current = true;
+    void trackLeadFormStart({
+      form_id: FORM_ID,
+      section_id: SECTION_ID,
+      surface: "landing",
+    });
+  };
+
+  const getElapsedMs = () => Date.now() - startTime;
+
+  const getFilledFieldsCount = () =>
+    [form.name, form.whatsapp, form.email, form.empresa, form.employees].filter((value) => value.trim().length > 0).length;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    void trackLeadFormSubmitAttempt({
+      form_id: FORM_ID,
+      section_id: SECTION_ID,
+      elapsed_ms: getElapsedMs(),
+      filled_fields_count: getFilledFieldsCount(),
+      has_email: Boolean(form.email.trim()),
+      has_company: Boolean(form.empresa.trim()),
+      has_whatsapp: Boolean(form.whatsapp.trim()),
+      has_employees: Boolean(form.employees.trim()),
+    });
+
     const result = leadSchema.safeParse(form);
+
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
+
       result.error.errors.forEach((err) => {
-        if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
       });
+
       setErrors(fieldErrors);
+
+      void trackLeadFormSubmitError({
+        form_id: FORM_ID,
+        section_id: SECTION_ID,
+        error_type: "validation",
+        error_fields: Object.keys(fieldErrors),
+        elapsed_ms: getElapsedMs(),
+      });
+
       return;
     }
-    
-    // Proteção contra spam simples (Honeypot e Tempo de preenchimento) -> Pode adicionar ReCaptcha depois
-    if (form.bot_field || Date.now() - startTime < 3000) {
-      toast({ title: "Sua solicitação foi recebida." }); // Falso positivo para o bot
-      if (onSuccess) onSuccess(); else setSubmitted(true);
+
+    if (form.bot_field || getElapsedMs() < 3000) {
+      void trackLeadFormSubmitError({
+        form_id: FORM_ID,
+        section_id: SECTION_ID,
+        error_type: "anti_spam",
+        blocked_reason: form.bot_field ? "honeypot" : "fast_submit",
+        elapsed_ms: getElapsedMs(),
+      });
+
+      toast({ title: "Sua solicitacao foi recebida." });
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        setSubmitted(true);
+      }
+
       return;
     }
-    
+
     setErrors({});
     setIsSubmitting(true);
-    
+
     try {
       await submitLeadToSupabase({
         nome: result.data.name,
         whatsapp: result.data.whatsapp,
         email: result.data.email || undefined,
         empresa: result.data.empresa,
-        funcionarios: result.data.employees
+        funcionarios: result.data.employees,
       });
-      
+
+      void trackLeadFormSubmitSuccess({
+        form_id: FORM_ID,
+        section_id: SECTION_ID,
+        elapsed_ms: getElapsedMs(),
+        source: "landing_page",
+      });
+
       if (onSuccess) {
         onSuccess();
       } else {
         setSubmitted(true);
       }
-      
+
       toast({
-        title: "Cadastro realizado! 🎉",
-        description: "Em breve entraremos em contato com você.",
+        title: "Cadastro realizado!",
+        description: "Em breve entraremos em contato com voce.",
       });
     } catch (error) {
+      void trackLeadFormSubmitError({
+        form_id: FORM_ID,
+        section_id: SECTION_ID,
+        error_type: "transport",
+        error_message: error instanceof Error ? error.message : "unknown_error",
+        elapsed_ms: getElapsedMs(),
+      });
+
       toast({
         title: "Erro ao enviar",
-        description: "Não foi possível enviar seus dados, tente novamente.",
+        description: "Nao foi possivel enviar seus dados, tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -70,31 +159,30 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
   if (submitted) {
     return (
-      <section id="contato" className="py-20 bg-hero-gradient">
+      <section id="contato" className="bg-hero-gradient py-20">
         <div className="container text-center text-primary-foreground">
-          <CheckCircle className="w-16 h-16 mx-auto mb-6 text-secondary" />
-          <h2 className="text-3xl font-extrabold mb-4">Obrigado pelo interesse!</h2>
-          <p className="text-lg opacity-90">Nossa equipe entrará em contato em até 24 horas.</p>
+          <CheckCircle className="mx-auto mb-6 h-16 w-16 text-secondary" />
+          <h2 className="mb-4 text-3xl font-extrabold">Obrigado pelo interesse!</h2>
+          <p className="text-lg opacity-90">Nossa equipe entrara em contato em ate 24 horas.</p>
         </div>
       </section>
     );
   }
 
   return (
-    <section id="contato" className="py-20 bg-hero-gradient">
+    <section id="contato" className="bg-hero-gradient py-20">
       <div className="container" ref={ref}>
-        <div className="max-w-lg mx-auto">
-          <div className={`text-center text-primary-foreground mb-10 ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
-              Fale com um Especialista
-            </h2>
-             <p className="opacity-90 max-w-sm mx-auto">
-               Descubra como nossa plataforma pode eliminar o trabalho braçal do seu RH. Receba 14 dias de teste grátis.
-             </p>
+        <div className="mx-auto max-w-lg">
+          <div className={`mb-10 text-center text-primary-foreground ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
+            <h2 className="mb-4 text-3xl font-extrabold md:text-4xl">Fale com um Especialista</h2>
+            <p className="mx-auto max-w-sm opacity-90">
+              Descubra como nossa plataforma pode eliminar o trabalho bracal do seu RH. Receba 14 dias de teste gratis.
+            </p>
           </div>
           <form
             onSubmit={handleSubmit}
-            className={`bg-card rounded-2xl p-8 shadow-2xl ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
+            onFocusCapture={handleFormStart}
+            className={`rounded-2xl bg-card p-8 shadow-2xl ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}
             style={{ animationDelay: "0.2s" }}
           >
             <div className="space-y-4">
@@ -103,7 +191,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 name="bot_field"
                 value={form.bot_field}
                 onChange={(e) => setForm({ ...form, bot_field: e.target.value })}
-                className="opacity-0 absolute -z-10 w-0 h-0"
+                className="absolute -z-10 h-0 w-0 opacity-0"
                 tabIndex={-1}
                 autoComplete="off"
                 aria-hidden="true"
@@ -121,7 +209,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                   aria-invalid={!!errors.name}
                   aria-describedby={errors.name ? "name-error" : undefined}
                 />
-                {errors.name && <p id="name-error" className="text-destructive text-xs mt-1">{errors.name}</p>}
+                {errors.name && <p id="name-error" className="mt-1 text-xs text-destructive">{errors.name}</p>}
               </div>
               <div>
                 <label htmlFor="whatsapp" className="sr-only">WhatsApp</label>
@@ -138,7 +226,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                   aria-invalid={!!errors.whatsapp}
                   aria-describedby={errors.whatsapp ? "whatsapp-error" : undefined}
                 />
-                {errors.whatsapp && <p id="whatsapp-error" className="text-destructive text-xs mt-1">{errors.whatsapp}</p>}
+                {errors.whatsapp && <p id="whatsapp-error" className="mt-1 text-xs text-destructive">{errors.whatsapp}</p>}
               </div>
               <div>
                 <label htmlFor="email" className="sr-only">E-mail corporativo</label>
@@ -154,7 +242,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                   aria-invalid={!!errors.email}
                   aria-describedby={errors.email ? "email-error" : undefined}
                 />
-                {errors.email && <p id="email-error" className="text-destructive text-xs mt-1">{errors.email}</p>}
+                {errors.email && <p id="email-error" className="mt-1 text-xs text-destructive">{errors.email}</p>}
               </div>
               <div>
                 <label htmlFor="empresa" className="sr-only">Nome da Empresa</label>
@@ -169,14 +257,14 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                   aria-invalid={!!errors.empresa}
                   aria-describedby={errors.empresa ? "empresa-error" : undefined}
                 />
-                {errors.empresa && <p id="empresa-error" className="text-destructive text-xs mt-1">{errors.empresa}</p>}
+                {errors.empresa && <p id="empresa-error" className="mt-1 text-xs text-destructive">{errors.empresa}</p>}
               </div>
               <div>
-                <label htmlFor="employees" className="sr-only">Quantidade de funcionários</label>
+                <label htmlFor="employees" className="sr-only">Quantidade de funcionarios</label>
                 <Input
                   id="employees"
                   type="number"
-                  placeholder="Quantidade exata de funcionários"
+                  placeholder="Quantidade exata de funcionarios"
                   value={form.employees}
                   onChange={(e) => setForm({ ...form, employees: e.target.value })}
                   className="h-12 rounded-xl"
@@ -185,21 +273,21 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                   aria-invalid={!!errors.employees}
                   aria-describedby={errors.employees ? "employees-error" : undefined}
                 />
-                {errors.employees && <p id="employees-error" className="text-destructive text-xs mt-1">{errors.employees}</p>}
+                {errors.employees && <p id="employees-error" className="mt-1 text-xs text-destructive">{errors.employees}</p>}
               </div>
             </div>
-            <Button 
-              variant="cta" 
-              type="submit" 
-              className="w-full h-14 rounded-xl mt-6 text-lg"
+            <Button
+              variant="cta"
+              type="submit"
+              className="mt-6 h-14 w-full rounded-xl text-lg"
               disabled={isSubmitting || submitted}
             >
-              <Send className={`w-5 h-5 mr-2 ${isSubmitting ? 'animate-pulse' : ''}`} />
+              <Send className={`mr-2 h-5 w-5 ${isSubmitting ? "animate-pulse" : ""}`} />
               {isSubmitting ? "Enviando..." : "Quero testar agora"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground mt-4">
-              🔒 Seus dados serão usados apenas para contato comercial e demonstração da plataforma. Não enviamos spam. 
-              Ao enviar, você concorda com nossos termos.
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Seus dados serao usados apenas para contato comercial e demonstracao da plataforma. Nao enviamos spam.
+              Ao enviar, voce concorda com nossos termos.
             </p>
           </form>
         </div>
