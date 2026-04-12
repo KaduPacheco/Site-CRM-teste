@@ -3,9 +3,11 @@ import { CrmLead, CrmLeadEvent, CrmLeadTask } from "@/types/crm";
 import {
   DashboardActivityItem,
   DashboardAttentionData,
+  DashboardAnalyticsSeriesDatum,
   DashboardChartDatum,
   DashboardKpi,
   DashboardRecentLeadItem,
+  DashboardTrafficComparisonDatum,
   DashboardUpcomingTaskItem,
 } from "@/types/dashboard";
 
@@ -58,6 +60,8 @@ const PIPELINE_COLORS: Record<string, string> = {
 
 const SOURCE_COLORS = ["#2563eb", "#0f766e", "#7c3aed", "#ea580c", "#dc2626", "#0891b2", "#64748b"];
 const ANALYTICS_FUNNEL_COLORS = ["#2563eb", "#0f766e", "#f59e0b", "#7c3aed", "#16a34a"];
+const ANALYTICS_FETCH_PAGE_SIZE = 1000;
+const ANALYTICS_FETCH_MAX_RECORDS = 5000;
 
 const PIPELINE_ORDER = ["novo", "em_contato", "qualificado", "ganho", "perdido", "sem_estagio"];
 const ANALYTICS_FUNNEL_ORDER = [
@@ -108,24 +112,44 @@ export async function getDashboardEventsDataset(limit = 10): Promise<DashboardEv
   return (data ?? []) as DashboardEventRecord[];
 }
 
-export async function getDashboardAnalyticsDataset(days = 30, limit = 1000): Promise<DashboardAnalyticsEventRecord[]> {
+export async function getDashboardAnalyticsDataset(
+  days = 30,
+  maxRecords = ANALYTICS_FETCH_MAX_RECORDS,
+): Promise<DashboardAnalyticsEventRecord[]> {
   const since = new Date();
   since.setDate(since.getDate() - days);
 
-  const { data, error } = await supabase
-    .from("analytics_events")
-    .select(
-      "id,event_type,visitor_id,session_id,occurred_at,page_path,page_url,referrer,utm_source,utm_medium,utm_campaign,utm_term,utm_content,metadata",
-    )
-    .gte("occurred_at", since.toISOString())
-    .order("occurred_at", { ascending: false })
-    .limit(limit);
+  const records: DashboardAnalyticsEventRecord[] = [];
+  let pageIndex = 0;
 
-  if (error) {
-    throw new Error(`Falha ao carregar analytics do dashboard: ${error.message}`);
+  while (records.length < maxRecords) {
+    const from = pageIndex * ANALYTICS_FETCH_PAGE_SIZE;
+    const to = Math.min(from + ANALYTICS_FETCH_PAGE_SIZE - 1, maxRecords - 1);
+
+    const { data, error } = await supabase
+      .from("analytics_events")
+      .select(
+        "id,event_type,visitor_id,session_id,occurred_at,page_path,page_url,referrer,utm_source,utm_medium,utm_campaign,utm_term,utm_content,metadata",
+      )
+      .gte("occurred_at", since.toISOString())
+      .order("occurred_at", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      throw new Error(`Falha ao carregar analytics do dashboard: ${error.message}`);
+    }
+
+    const page = (data ?? []) as DashboardAnalyticsEventRecord[];
+    records.push(...page);
+
+    if (page.length < ANALYTICS_FETCH_PAGE_SIZE) {
+      break;
+    }
+
+    pageIndex += 1;
   }
 
-  return (data ?? []) as DashboardAnalyticsEventRecord[];
+  return records;
 }
 
 export function buildLeadKpis(leads: DashboardLeadRecord[]): DashboardKpi[] {
@@ -182,20 +206,21 @@ export function buildTaskKpis(tasks: DashboardTaskRecord[]): DashboardKpi[] {
 }
 
 export function buildAnalyticsKpis(events: DashboardAnalyticsEventRecord[]): DashboardKpi[] {
-  const uniqueVisitors = new Set(events.map((event) => event.visitor_id).filter(Boolean)).size;
+  const pageViewVisitors = getUniqueVisitorCountByEvent(events, "page_view");
   const ctaClicks = events.filter((event) => event.event_type === "cta_click").length;
   const submitSuccess = events.filter((event) => event.event_type === "lead_form_submit_success").length;
   const submitErrors = events.filter((event) => event.event_type === "lead_form_submit_error").length;
-  const conversionRate = uniqueVisitors > 0 ? Number(((submitSuccess / uniqueVisitors) * 100).toFixed(1)) : 0;
+  const conversionRate =
+    pageViewVisitors > 0 ? Number(((submitSuccess / pageViewVisitors) * 100).toFixed(1)) : 0;
 
   return [
     {
       id: "landing_visitors",
       label: "Visitors unicos",
-      value: uniqueVisitors,
-      description: "Visitantes identificados pelo tracking real da landing.",
-      helperText: "Base de analytics da landing.",
-      tone: uniqueVisitors > 0 ? "positive" : "neutral",
+      value: pageViewVisitors,
+      description: "Visitors unicos que realmente geraram page_view na landing no periodo analisado.",
+      helperText: "Base de page_view autenticada.",
+      tone: pageViewVisitors > 0 ? "positive" : "neutral",
     },
     {
       id: "landing_cta_clicks",
@@ -217,8 +242,8 @@ export function buildAnalyticsKpis(events: DashboardAnalyticsEventRecord[]): Das
       id: "landing_conversion_rate",
       label: "Taxa de conversao",
       value: conversionRate,
-      description: "Conversoes sobre visitors unicos rastreados no periodo.",
-      helperText: "Percentual de lead_form_submit_success.",
+      description: "Conversoes reais sobre visitors unicos que chegaram a pagina.",
+      helperText: "lead_form_submit_success / visitors com page_view.",
       tone: conversionRate > 0 ? "positive" : "neutral",
     },
   ];
@@ -274,24 +299,26 @@ export function buildSourceDistribution(leads: DashboardLeadRecord[]): Dashboard
 }
 
 export function buildAnalyticsFunnel(events: DashboardAnalyticsEventRecord[]): DashboardChartDatum[] {
-  const counts = new Map<string, number>();
+  const uniqueVisitorsByStep = new Map<string, Set<string>>();
 
   ANALYTICS_FUNNEL_ORDER.forEach((eventType) => {
-    counts.set(eventType, 0);
+    uniqueVisitorsByStep.set(eventType, new Set());
   });
 
   events.forEach((event) => {
-    if (!counts.has(event.event_type)) {
+    const bucket = uniqueVisitorsByStep.get(event.event_type);
+
+    if (!bucket || !event.visitor_id) {
       return;
     }
 
-    counts.set(event.event_type, (counts.get(event.event_type) ?? 0) + 1);
+    bucket.add(event.visitor_id);
   });
 
-  const base = counts.get("page_view") || 0;
+  const base = uniqueVisitorsByStep.get("page_view")?.size || 0;
 
   return ANALYTICS_FUNNEL_ORDER.map((eventType, index) => {
-    const value = counts.get(eventType) ?? 0;
+    const value = uniqueVisitorsByStep.get(eventType)?.size ?? 0;
     const percentage = base > 0 ? Number(((value / base) * 100).toFixed(1)) : 0;
 
     return {
@@ -305,16 +332,22 @@ export function buildAnalyticsFunnel(events: DashboardAnalyticsEventRecord[]): D
 }
 
 export function buildAnalyticsSourceDistribution(events: DashboardAnalyticsEventRecord[]): DashboardChartDatum[] {
-  const counts = new Map<string, number>();
+  const counts = new Map<string, Set<string>>();
 
   events
     .filter((event) => event.event_type === "page_view")
     .forEach((event) => {
       const source = getAnalyticsSourceLabel(event);
-      counts.set(source, (counts.get(source) ?? 0) + 1);
+      const visitors = counts.get(source) ?? new Set<string>();
+      if (event.visitor_id) {
+        visitors.add(event.visitor_id);
+      }
+      counts.set(source, visitors);
     });
 
-  const ordered = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  const ordered = Array.from(counts.entries())
+    .map(([label, visitors]) => [label, visitors.size] as const)
+    .sort((a, b) => b[1] - a[1]);
   const total = ordered.reduce((sum, [, value]) => sum + value, 0) || 1;
 
   return ordered.slice(0, 6).map(([label, value], index) => ({
@@ -324,6 +357,124 @@ export function buildAnalyticsSourceDistribution(events: DashboardAnalyticsEvent
     percentage: Number(((value / total) * 100).toFixed(1)),
     color: SOURCE_COLORS[index % SOURCE_COLORS.length],
   }));
+}
+
+export function buildAnalyticsSeries(
+  events: DashboardAnalyticsEventRecord[],
+  days = 14,
+): DashboardAnalyticsSeriesDatum[] {
+  const buckets = createAnalyticsSeriesBuckets(days);
+
+  events.forEach((event) => {
+    const key = getDateKey(event.occurred_at);
+    const bucket = buckets.get(key);
+
+    if (!bucket) {
+      return;
+    }
+
+    if (event.event_type === "page_view") {
+      if (event.visitor_id) {
+        bucket.visitorIds.add(event.visitor_id);
+      }
+      bucket.pageViews += 1;
+      return;
+    }
+
+    if (event.event_type === "cta_click") {
+      bucket.ctaClicks += 1;
+      return;
+    }
+
+    if (event.event_type === "lead_form_submit_success") {
+      bucket.leads += 1;
+    }
+  });
+
+  return Array.from(buckets.values()).map((bucket) => {
+    const visitors = bucket.visitorIds.size;
+
+    return {
+      id: bucket.key,
+      label: bucket.label,
+      periodStart: bucket.key,
+      visitors,
+      pageViews: bucket.pageViews,
+      ctaClicks: bucket.ctaClicks,
+      leads: bucket.leads,
+      conversionRate: visitors > 0 ? Number(((bucket.leads / visitors) * 100).toFixed(1)) : 0,
+    };
+  });
+}
+
+export function buildTrafficVsLeadsComparison(
+  events: DashboardAnalyticsEventRecord[],
+): DashboardTrafficComparisonDatum[] {
+  const channels = new Map<
+    string,
+    {
+      visitors: Set<string>;
+      leads: number;
+    }
+  >();
+
+  events.forEach((event) => {
+    const isTrafficEvent = event.event_type === "page_view";
+    const isLeadEvent = event.event_type === "lead_form_submit_success";
+
+    if (!isTrafficEvent && !isLeadEvent) {
+      return;
+    }
+
+    const source = getAnalyticsSourceLabel(event);
+    const channel = channels.get(source) ?? { visitors: new Set<string>(), leads: 0 };
+
+    if (isTrafficEvent && event.visitor_id) {
+      channel.visitors.add(event.visitor_id);
+    }
+
+    if (isLeadEvent) {
+      channel.leads += 1;
+    }
+
+    channels.set(source, channel);
+  });
+
+  const totals = Array.from(channels.values()).reduce(
+    (accumulator, channel) => {
+      return {
+        visitors: accumulator.visitors + channel.visitors.size,
+        leads: accumulator.leads + channel.leads,
+      };
+    },
+    { visitors: 0, leads: 0 },
+  );
+
+  return Array.from(channels.entries())
+    .map(([label, channel], index) => {
+      const visitors = channel.visitors.size;
+      const leads = channel.leads;
+
+      return {
+        id: label.toLowerCase().replace(/\s+/g, "_"),
+        label,
+        visitors,
+        leads,
+        conversionRate: visitors > 0 ? Number(((leads / visitors) * 100).toFixed(1)) : 0,
+        visitorsShare:
+          totals.visitors > 0 ? Number(((visitors / totals.visitors) * 100).toFixed(1)) : 0,
+        leadsShare: totals.leads > 0 ? Number(((leads / totals.leads) * 100).toFixed(1)) : 0,
+        color: SOURCE_COLORS[index % SOURCE_COLORS.length],
+      };
+    })
+    .sort((a, b) => {
+      if (b.visitors !== a.visitors) {
+        return b.visitors - a.visitors;
+      }
+
+      return b.leads - a.leads;
+    })
+    .slice(0, 6);
 }
 
 export function buildRecentLeads(leads: DashboardLeadRecord[], limit = 6): DashboardRecentLeadItem[] {
@@ -543,6 +694,15 @@ function getPayloadString(payload: Record<string, unknown>, key: string) {
   return typeof value === "string" && value.trim() ? value.trim() : "";
 }
 
+function getUniqueVisitorCountByEvent(events: DashboardAnalyticsEventRecord[], eventType: string) {
+  return new Set(
+    events
+      .filter((event) => event.event_type === eventType)
+      .map((event) => event.visitor_id)
+      .filter(Boolean),
+  ).size;
+}
+
 function getAnalyticsEventLabel(eventType: (typeof ANALYTICS_FUNNEL_ORDER)[number]) {
   switch (eventType) {
     case "page_view":
@@ -558,6 +718,40 @@ function getAnalyticsEventLabel(eventType: (typeof ANALYTICS_FUNNEL_ORDER)[numbe
     default:
       return toTitleCase(eventType);
   }
+}
+
+function createAnalyticsSeriesBuckets(days: number) {
+  const normalizedDays = Math.max(days, 1);
+  const buckets = new Map<
+    string,
+    {
+      key: string;
+      label: string;
+      visitorIds: Set<string>;
+      pageViews: number;
+      ctaClicks: number;
+      leads: number;
+    }
+  >();
+
+  for (let offset = normalizedDays - 1; offset >= 0; offset -= 1) {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - offset);
+
+    const key = getDateKey(date.toISOString());
+
+    buckets.set(key, {
+      key,
+      label: formatSeriesLabel(key),
+      visitorIds: new Set<string>(),
+      pageViews: 0,
+      ctaClicks: 0,
+      leads: 0,
+    });
+  }
+
+  return buckets;
 }
 
 function getAnalyticsSourceLabel(event: DashboardAnalyticsEventRecord) {
@@ -597,6 +791,16 @@ function sortPipelineEntries(a: string, b: string) {
   }
 
   return aIndex - bIndex;
+}
+
+function getDateKey(value: string) {
+  return value.slice(0, 10);
+}
+
+function formatSeriesLabel(dateKey: string) {
+  const [, month, day] = dateKey.split("-");
+
+  return `${day}/${month}`;
 }
 
 function toTitleCase(value: string) {

@@ -1,8 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildAnalyticsFunnel,
   buildAnalyticsKpis,
+  buildAnalyticsSeries,
   buildAnalyticsSourceDistribution,
+  buildTrafficVsLeadsComparison,
 } from "../dashboardService";
 
 const analyticsEvents = [
@@ -121,6 +123,15 @@ const analyticsEvents = [
 ];
 
 describe("dashboardService analytics builders", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-04-12T12:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("gera KPIs reais de visitors, CTA, conversao e taxa", () => {
     const metrics = buildAnalyticsKpis(analyticsEvents);
 
@@ -158,6 +169,42 @@ describe("dashboardService analytics builders", () => {
       label: "Direto",
       value: 1,
       percentage: 50,
+    });
+  });
+
+  it("gera serie por periodo com visitors, leads e taxa diaria", () => {
+    const series = buildAnalyticsSeries(analyticsEvents, 2);
+
+    expect(series).toHaveLength(2);
+    expect(series[1]).toMatchObject({
+      periodStart: "2026-04-12",
+      visitors: 2,
+      pageViews: 2,
+      ctaClicks: 1,
+      leads: 1,
+      conversionRate: 50,
+    });
+  });
+
+  it("compara trafego e leads por canal com base nos eventos reais", () => {
+    const comparison = buildTrafficVsLeadsComparison(analyticsEvents);
+
+    expect(comparison).toHaveLength(2);
+    expect(comparison[0]).toMatchObject({
+      label: "UTM: google",
+      visitors: 1,
+      leads: 1,
+      conversionRate: 100,
+      visitorsShare: 50,
+      leadsShare: 100,
+    });
+    expect(comparison[1]).toMatchObject({
+      label: "Direto",
+      visitors: 1,
+      leads: 0,
+      conversionRate: 0,
+      visitorsShare: 50,
+      leadsShare: 0,
     });
   });
 });

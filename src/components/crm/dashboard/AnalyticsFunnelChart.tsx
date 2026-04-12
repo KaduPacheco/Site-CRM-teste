@@ -23,7 +23,7 @@ const AnalyticsFunnelChart = ({ data, isLoading, errorMessage }: AnalyticsFunnel
   return (
     <DashboardSection
       title="Funil da landing"
-      subtitle="Leitura real dos eventos de page view, CTA e conversao do formulario."
+      subtitle="Leitura real de visitors por etapa de aquisicao, da visita ate o envio bem-sucedido."
     >
       {isLoading ? (
         <div className="grid gap-3">
@@ -70,7 +70,7 @@ const AnalyticsFunnelChart = ({ data, isLoading, errorMessage }: AnalyticsFunnel
                   }}
                   formatter={(value: number, _name: string, item) => {
                     const entry = item?.payload as DashboardChartDatum | undefined;
-                    return [`${value} eventos`, `${entry?.percentage ?? 0}% da base`];
+                    return [`${value} visitors`, `${entry?.percentage ?? 0}% da base`];
                   }}
                 />
                 <Bar dataKey="value" radius={[0, 12, 12, 0]} barSize={24}>
@@ -92,7 +92,7 @@ const AnalyticsFunnelChart = ({ data, isLoading, errorMessage }: AnalyticsFunnel
                   </div>
                   <span className="text-sm font-semibold text-foreground">{entry.value}</span>
                 </div>
-                <p className="text-xs text-muted-foreground">{entry.percentage}% em relacao aos page views.</p>
+                <p className="text-xs text-muted-foreground">{entry.percentage}% em relacao aos visitors que viram a pagina.</p>
               </div>
             ))}
           </div>

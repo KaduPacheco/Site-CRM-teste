@@ -17,6 +17,28 @@ export interface DashboardChartDatum {
   color: string;
 }
 
+export interface DashboardAnalyticsSeriesDatum {
+  id: string;
+  label: string;
+  periodStart: string;
+  visitors: number;
+  pageViews: number;
+  ctaClicks: number;
+  leads: number;
+  conversionRate: number;
+}
+
+export interface DashboardTrafficComparisonDatum {
+  id: string;
+  label: string;
+  visitors: number;
+  leads: number;
+  conversionRate: number;
+  visitorsShare: number;
+  leadsShare: number;
+  color: string;
+}
+
 export interface DashboardRecentLeadItem {
   id: string;
   name: string;

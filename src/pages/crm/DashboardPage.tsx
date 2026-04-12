@@ -14,19 +14,23 @@ import {
 } from "lucide-react";
 import AnalyticsFunnelChart from "@/components/crm/dashboard/AnalyticsFunnelChart";
 import AnalyticsSourcesChart from "@/components/crm/dashboard/AnalyticsSourcesChart";
+import AnalyticsTimelineChart from "@/components/crm/dashboard/AnalyticsTimelineChart";
 import AttentionPanel from "@/components/crm/dashboard/AttentionPanel";
 import ActivityFeed from "@/components/crm/dashboard/ActivityFeed";
 import KpiCard from "@/components/crm/dashboard/KpiCard";
 import PipelineChart from "@/components/crm/dashboard/PipelineChart";
 import RecentLeadsList from "@/components/crm/dashboard/RecentLeadsList";
 import SourceChart from "@/components/crm/dashboard/SourceChart";
+import TrafficVsLeadsChart from "@/components/crm/dashboard/TrafficVsLeadsChart";
 import UpcomingTasksList from "@/components/crm/dashboard/UpcomingTasksList";
 import { Button } from "@/components/ui/Button";
 import {
   buildActivityFeed,
   buildAnalyticsFunnel,
   buildAnalyticsKpis,
+  buildAnalyticsSeries,
   buildAnalyticsSourceDistribution,
+  buildTrafficVsLeadsComparison,
   buildAttentionPanel,
   buildLeadKpis,
   buildPipelineDistribution,
@@ -39,6 +43,8 @@ import {
   getDashboardLeadsDataset,
   getDashboardTasksDataset,
 } from "@/services/dashboardService";
+
+const ANALYTICS_WINDOW_DAYS = 30;
 
 const DashboardPage = () => {
   const leadsQuery = useQuery({
@@ -61,7 +67,7 @@ const DashboardPage = () => {
 
   const analyticsQuery = useQuery({
     queryKey: ["crm-dashboard", "analytics"],
-    queryFn: () => getDashboardAnalyticsDataset(30, 1500),
+    queryFn: () => getDashboardAnalyticsDataset(ANALYTICS_WINDOW_DAYS),
     staleTime: 20_000,
   });
 
@@ -72,7 +78,11 @@ const DashboardPage = () => {
   const pipelineData = leadsQuery.data ? buildPipelineDistribution(leadsQuery.data) : [];
   const sourceData = leadsQuery.data ? buildSourceDistribution(leadsQuery.data) : [];
   const analyticsFunnelData = analyticsQuery.data ? buildAnalyticsFunnel(analyticsQuery.data) : [];
+  const analyticsSeriesData = analyticsQuery.data
+    ? buildAnalyticsSeries(analyticsQuery.data, ANALYTICS_WINDOW_DAYS)
+    : [];
   const analyticsSourceData = analyticsQuery.data ? buildAnalyticsSourceDistribution(analyticsQuery.data) : [];
+  const trafficVsLeadsData = analyticsQuery.data ? buildTrafficVsLeadsComparison(analyticsQuery.data) : [];
   const recentLeads = leadsQuery.data ? buildRecentLeads(leadsQuery.data) : [];
   const upcomingTasks = tasksQuery.data ? buildUpcomingTasks(tasksQuery.data, leadsQuery.data) : [];
   const activityFeed = eventsQuery.data ? buildActivityFeed(eventsQuery.data, leadsQuery.data) : [];
@@ -102,7 +112,8 @@ const DashboardPage = () => {
               </h1>
               <p className="max-w-2xl text-sm leading-7 text-muted-foreground lg:text-base">
                 O dashboard consolida pipeline, operacao comercial e analytics reais da landing usando os dados
-                autenticados do CRM e o tracking gravado no banco.
+                autenticados do CRM e o tracking gravado no banco, com leitura executiva dos ultimos{" "}
+                {ANALYTICS_WINDOW_DAYS} dias.
               </p>
             </div>
           </div>
@@ -181,6 +192,19 @@ const DashboardPage = () => {
         <KpiCard
           metric={analyticsMetrics.find((metric) => metric.id === "landing_conversion_rate")}
           icon={TrendingUp}
+          isLoading={analyticsQuery.isLoading}
+          errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
+        <AnalyticsTimelineChart
+          data={analyticsSeriesData}
+          isLoading={analyticsQuery.isLoading}
+          errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
+        />
+        <TrafficVsLeadsChart
+          data={trafficVsLeadsData}
           isLoading={analyticsQuery.isLoading}
           errorMessage={analyticsQuery.isError ? getErrorMessage(analyticsQuery.error) : undefined}
         />
