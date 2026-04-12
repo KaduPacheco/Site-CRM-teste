@@ -7,7 +7,7 @@ import LeadsPaginationControls from "@/components/crm/leads/LeadsPaginationContr
 import LeadsResultsTable, { LeadWithSummary } from "@/components/crm/leads/LeadsResultsTable";
 import LeadsWorkspaceToolbar from "@/components/crm/leads/LeadsWorkspaceToolbar";
 import { Button } from "@/components/ui/Button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import {
   LEAD_OWNER_FILTER_ALL,
   LEAD_SOURCE_FILTER_ALL,

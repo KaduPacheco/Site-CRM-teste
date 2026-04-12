@@ -1,5 +1,18 @@
 export type PipelineStage = "novo" | "em_contato" | "qualificado" | "perdido" | "ganho";
 
+export interface CrmLeadEventPayload extends Record<string, unknown> {
+  title?: string;
+  due_date?: string;
+  content_preview?: string;
+  to?: string;
+  previous_stage?: PipelineStage | null;
+  next_stage?: PipelineStage | null;
+  previous_owner_id?: string | null;
+  next_owner_id?: string | null;
+  previous_owner_label?: string | null;
+  next_owner_label?: string | null;
+}
+
 export interface CrmLead {
   id: string;
   nome: string;
@@ -29,7 +42,7 @@ export interface CrmLeadEvent {
     | "pipeline_change"
     | "owner_changed"
     | "lead_created";
-  payload: Record<string, unknown>;
+  payload: CrmLeadEventPayload;
   created_at: string;
 }
 

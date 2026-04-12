@@ -1,15 +1,26 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
+import { useToast } from "@/hooks/useToast";
+import { getErrorMessage } from "@/lib/appLogger";
 import { LogOut, Users, LayoutDashboard } from "lucide-react";
 
 const CrmLayout = () => {
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/crm/login");
+    try {
+      await signOut();
+      navigate("/crm/login");
+    } catch (error) {
+      toast({
+        title: "Nao foi possivel encerrar a sessao",
+        description: getErrorMessage(error, "Tente novamente em instantes."),
+        variant: "destructive",
+      });
+    }
   };
 
   return (

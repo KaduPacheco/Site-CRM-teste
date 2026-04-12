@@ -1,5 +1,14 @@
 import { supabase } from "@/lib/supabase";
-import { CrmLead, CrmLeadEvent, CrmLeadNote, CrmLeadTask, CrmLeadTaskOverview, PipelineStage } from "@/types/crm";
+import { getErrorMessage, logAppEvent } from "@/lib/appLogger";
+import {
+  CrmLead,
+  CrmLeadEvent,
+  CrmLeadEventPayload,
+  CrmLeadNote,
+  CrmLeadTask,
+  CrmLeadTaskOverview,
+  PipelineStage,
+} from "@/types/crm";
 
 interface LeadStageLookup {
   id: string;
@@ -10,6 +19,12 @@ interface LeadStageLookup {
 interface LeadOwnerLookup {
   id: string;
   owner_id: string | null;
+}
+
+export interface LeadEventLogResult {
+  ok: boolean;
+  data: CrmLeadEvent | null;
+  errorMessage?: string;
 }
 
 export async function getCrmLeads(): Promise<CrmLead[]> {
@@ -65,8 +80,8 @@ export async function getCrmLeadById(id: string): Promise<CrmLead> {
 export async function logLeadEvent(
   leadId: string,
   eventType: CrmLeadEvent["event_type"],
-  payload: Record<string, unknown> = {},
-) {
+  payload: CrmLeadEventPayload = {},
+): Promise<LeadEventLogResult> {
   const { data, error } = await supabase
     .from("lead_events")
     .insert([{ lead_id: leadId, event_type: eventType, payload }])
@@ -74,10 +89,26 @@ export async function logLeadEvent(
     .single();
 
   if (error) {
-    console.error(`[Audit Log Failure] Falha ao registrar '${eventType}' para o lead ${leadId}:`, error.message);
+    const errorMessage = getErrorMessage(error, "Falha desconhecida ao registrar evento.");
+
+    logAppEvent("crm.audit", "error", "Falha ao registrar evento de lead", {
+      leadId,
+      eventType,
+      error: errorMessage,
+      payload,
+    });
+
+    return {
+      ok: false,
+      data: null,
+      errorMessage,
+    };
   }
 
-  return data;
+  return {
+    ok: true,
+    data: (data ?? null) as CrmLeadEvent | null,
+  };
 }
 
 export async function getLeadEvents(leadId: string): Promise<CrmLeadEvent[]> {
@@ -125,7 +156,8 @@ export async function createLeadNote(leadId: string, content: string, authorId: 
     throw new Error(`Falha ao criar nota: ${error.message}`);
   }
 
-  await logLeadEvent(leadId, "note_added", { content_preview: content.substring(0, 80) });
+  const auditResult = await logLeadEvent(leadId, "note_added", { content_preview: content.substring(0, 80) });
+  warnWhenLeadAuditFails("note_added", leadId, auditResult);
 
   return data;
 }
@@ -173,7 +205,8 @@ export async function createLeadTask(task: {
     throw new Error(`Falha ao criar tarefa: ${error.message}`);
   }
 
-  await logLeadEvent(task.lead_id, "task_added", { title: task.title, due_date: task.due_date });
+  const auditResult = await logLeadEvent(task.lead_id, "task_added", { title: task.title, due_date: task.due_date });
+  warnWhenLeadAuditFails("task_added", task.lead_id, auditResult);
 
   return data;
 }
@@ -190,7 +223,9 @@ export async function updateTaskStatus(taskId: string, completed: boolean) {
     throw new Error(`Falha ao atualizar tarefa: ${error.message}`);
   }
 
-  await logLeadEvent(data.lead_id, completed ? "task_completed" : "task_reopened", { title: data.title });
+  const eventType = completed ? "task_completed" : "task_reopened";
+  const auditResult = await logLeadEvent(data.lead_id, eventType, { title: data.title });
+  warnWhenLeadAuditFails(eventType, data.lead_id, auditResult);
 
   return data;
 }
@@ -214,10 +249,11 @@ export async function updateLeadPipelineStage(leadId: string, nextStage: Pipelin
   }
 
   if (previousStage !== nextStage) {
-    await logLeadEvent(leadId, "pipeline_change", {
+    const auditResult = await logLeadEvent(leadId, "pipeline_change", {
       previous_stage: previousStage,
       next_stage: nextStage,
     });
+    warnWhenLeadAuditFails("pipeline_change", leadId, auditResult);
   }
 
   return data as CrmLead;
@@ -248,12 +284,13 @@ export async function updateLeadOwner(
   }
 
   if (currentLead.owner_id !== nextOwnerId) {
-    await logLeadEvent(leadId, "owner_changed", {
+    const auditResult = await logLeadEvent(leadId, "owner_changed", {
       previous_owner_id: currentLead.owner_id,
       next_owner_id: nextOwnerId,
       previous_owner_label: options?.previousOwnerLabel ?? null,
       next_owner_label: options?.nextOwnerLabel ?? null,
     });
+    warnWhenLeadAuditFails("owner_changed", leadId, auditResult);
   }
 
   return data as CrmLead;
@@ -305,4 +342,20 @@ function normalizeLeadStage(pipelineStage: PipelineStage | null, status: string)
   }
 
   return null;
+}
+
+function warnWhenLeadAuditFails(
+  eventType: CrmLeadEvent["event_type"],
+  leadId: string,
+  auditResult: LeadEventLogResult,
+) {
+  if (auditResult.ok) {
+    return;
+  }
+
+  logAppEvent("crm.audit", "warn", "Operacao concluida sem persistir trilha de auditoria", {
+    leadId,
+    eventType,
+    error: auditResult.errorMessage,
+  });
 }

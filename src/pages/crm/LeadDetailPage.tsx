@@ -1,15 +1,10 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import {
-  Activity,
   AlertCircle,
   Calendar,
-  CalendarClock,
   CheckSquare,
-  Clock,
   History,
-  MessageSquare,
   Package,
   Send,
   Square,
@@ -18,7 +13,9 @@ import {
 import LeadStageBadge from "@/components/crm/LeadStageBadge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
+import { useLeadWorkspace } from "@/hooks/useLeadWorkspace";
+import { buildLeadTimelineItems } from "@/lib/crmTimeline";
 import {
   PIPELINE_STAGE_OPTIONS,
   buildLeadTaskSummary,
@@ -29,138 +26,34 @@ import {
   getLeadStageOptionLabel,
   getOwnerDisplayLabel,
 } from "@/lib/crmLeadPresentation";
-import {
-  createLeadNote,
-  createLeadTask,
-  getCrmLeadById,
-  getCrmOwnerIds,
-  getLeadEvents,
-  getLeadNotes,
-  getLeadTasks,
-  updateLeadOwner,
-  updateLeadPipelineStage,
-  updateTaskStatus,
-} from "@/services/crmService";
-import { CrmLeadEvent, CrmLeadNote, CrmLeadTask, PipelineStage } from "@/types/crm";
-import { useToast } from "@/hooks/useToast";
+import { PipelineStage } from "@/types/crm";
 import { cn } from "@/utils/cn";
-
-interface TimelineItem {
-  id: string;
-  kind: "note" | "event";
-  title: string;
-  content?: string;
-  createdAt: string;
-  tone: "primary" | "muted" | "success";
-  icon: React.ReactNode;
-}
 
 const LeadDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const [newNote, setNewNote] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDate, setTaskDate] = useState("");
-
-  const leadQuery = useQuery({
-    queryKey: ["crm-lead", id],
-    queryFn: () => getCrmLeadById(id!),
-    enabled: Boolean(id),
-  });
-
-  const ownerIdsQuery = useQuery({
-    queryKey: ["crm-owner-ids"],
-    queryFn: getCrmOwnerIds,
-    enabled: Boolean(id),
-  });
-
-  const notesQuery = useQuery({
-    queryKey: ["crm-lead-notes", id],
-    queryFn: () => getLeadNotes(id!),
-    enabled: Boolean(id),
-  });
-
-  const eventsQuery = useQuery({
-    queryKey: ["crm-lead-events", id],
-    queryFn: () => getLeadEvents(id!),
-    enabled: Boolean(id),
-  });
-
-  const tasksQuery = useQuery({
-    queryKey: ["crm-lead-tasks", id],
-    queryFn: () => getLeadTasks(id!),
-    enabled: Boolean(id),
-  });
-
-  const noteMutation = useMutation({
-    mutationFn: () => createLeadNote(id!, newNote, user!.id),
-    onSuccess: () => {
-      invalidateLeadWorkspace(queryClient, id);
-      setNewNote("");
-      toast({ title: "Nota adicionada" });
-    },
-  });
-
-  const taskMutation = useMutation({
-    mutationFn: () =>
-      createLeadTask({
-        lead_id: id!,
-        title: taskTitle,
-        due_date: taskDate,
-        assignee_id: user!.id,
-      }),
-    onSuccess: () => {
-      invalidateLeadWorkspace(queryClient, id);
-      queryClient.invalidateQueries({ queryKey: ["crm-leads-task-overview"] });
-      setTaskTitle("");
-      setTaskDate("");
-      toast({ title: "Follow-up agendado" });
-    },
-  });
-
-  const toggleTaskMutation = useMutation({
-    mutationFn: ({ taskId, completed }: { taskId: string; completed: boolean }) => updateTaskStatus(taskId, completed),
-    onSuccess: () => {
-      invalidateLeadWorkspace(queryClient, id);
-      queryClient.invalidateQueries({ queryKey: ["crm-leads-task-overview"] });
-    },
-  });
-
-  const stageMutation = useMutation({
-    mutationFn: (nextStage: PipelineStage) => updateLeadPipelineStage(id!, nextStage),
-    onSuccess: () => {
-      invalidateLeadWorkspace(queryClient, id);
-      queryClient.invalidateQueries({ queryKey: ["crm-leads"] });
-      toast({ title: "Etapa atualizada" });
-    },
-  });
-
-  const ownerMutation = useMutation({
-    mutationFn: ({
-      nextOwnerId,
-      previousOwnerLabel,
-      nextOwnerLabel,
-    }: {
-      nextOwnerId: string | null;
-      previousOwnerLabel?: string;
-      nextOwnerLabel?: string;
-    }) => updateLeadOwner(id!, nextOwnerId, { previousOwnerLabel, nextOwnerLabel }),
-    onSuccess: (_, variables) => {
-      invalidateLeadWorkspace(queryClient, id);
-      queryClient.invalidateQueries({ queryKey: ["crm-leads"] });
-      queryClient.invalidateQueries({ queryKey: ["crm-owner-ids"] });
-      toast({ title: variables.nextOwnerId ? "Lead atribuido" : "Ownership removido" });
-    },
-  });
+  const {
+    leadQuery,
+    ownerIdsQuery,
+    notesQuery,
+    eventsQuery,
+    tasksQuery,
+    noteMutation,
+    taskMutation,
+    toggleTaskMutation,
+    stageMutation,
+    ownerMutation,
+  } = useLeadWorkspace(id);
 
   const taskSummary = useMemo(() => buildLeadTaskSummary(tasksQuery.data ?? []), [tasksQuery.data]);
   const ownerOptions = useMemo(() => buildOwnerOptions(ownerIdsQuery.data ?? [], user), [ownerIdsQuery.data, user]);
   const ownerLabelMap = useMemo(() => buildOwnerLabelMap(ownerOptions), [ownerOptions]);
   const timelineItems = useMemo(
-    () => buildTimelineItems(notesQuery.data ?? [], eventsQuery.data ?? [], ownerLabelMap, user?.id),
+    () => buildLeadTimelineItems(notesQuery.data ?? [], eventsQuery.data ?? [], ownerLabelMap, user?.id),
     [eventsQuery.data, notesQuery.data, ownerLabelMap, user?.id],
   );
 
@@ -170,7 +63,11 @@ const LeadDetailPage = () => {
       return;
     }
 
-    noteMutation.mutate();
+    noteMutation.mutate(newNote, {
+      onSuccess: () => {
+        setNewNote("");
+      },
+    });
   };
 
   const handleAddTask = (event: React.FormEvent<HTMLFormElement>) => {
@@ -179,7 +76,18 @@ const LeadDetailPage = () => {
       return;
     }
 
-    taskMutation.mutate();
+    taskMutation.mutate(
+      {
+        title: taskTitle,
+        dueDate: taskDate,
+      },
+      {
+        onSuccess: () => {
+          setTaskTitle("");
+          setTaskDate("");
+        },
+      },
+    );
   };
 
   const lead = leadQuery.data;
@@ -266,7 +174,7 @@ const LeadDetailPage = () => {
 
           <section className="rounded-[28px] border border-border/70 bg-card shadow-sm">
             <div className="flex items-center gap-2 border-b border-border bg-muted/20 px-6 py-5">
-              <Activity className="h-5 w-5 text-primary" />
+              <Package className="h-5 w-5 text-primary" />
               <div>
                 <h2 className="font-semibold text-foreground">Pipeline e ownership</h2>
                 <p className="text-sm text-muted-foreground">
@@ -574,194 +482,6 @@ function OperationalSummaryCard({
       <p className="mt-1 text-sm text-muted-foreground">{helper}</p>
     </div>
   );
-}
-
-function buildTimelineItems(
-  notes: CrmLeadNote[],
-  events: CrmLeadEvent[],
-  ownerLabelMap: ReadonlyMap<string, string>,
-  currentUserId?: string,
-): TimelineItem[] {
-  const noteItems: TimelineItem[] = notes.map((note) => ({
-    id: note.id,
-    kind: "note",
-    title: "Nota interna",
-    content: note.content,
-    createdAt: note.created_at,
-    tone: "primary",
-    icon: <MessageSquare className="h-4 w-4" />,
-  }));
-
-  const eventItems: TimelineItem[] = events.map((event) => ({
-    id: event.id,
-    kind: "event",
-    title: getEventTitle(event),
-    content: getEventDescription(event, ownerLabelMap, currentUserId),
-    createdAt: event.created_at,
-    tone: getEventTone(event.event_type),
-    icon: getEventIcon(event.event_type),
-  }));
-
-  return [...noteItems, ...eventItems].sort(
-    (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-  );
-}
-
-function getEventTitle(event: CrmLeadEvent) {
-  switch (event.event_type) {
-    case "task_added":
-      return "Follow-up agendado";
-    case "task_completed":
-      return "Tarefa concluida";
-    case "task_reopened":
-      return "Tarefa reaberta";
-    case "pipeline_change":
-      return "Etapa comercial atualizada";
-    case "owner_changed":
-      return "Ownership ajustado";
-    case "note_added":
-      return "Nota registrada";
-    default:
-      return "Atividade do lead";
-  }
-}
-
-function getEventDescription(
-  event: CrmLeadEvent,
-  ownerLabelMap: ReadonlyMap<string, string>,
-  currentUserId?: string,
-) {
-  switch (event.event_type) {
-    case "task_added":
-    case "task_completed":
-    case "task_reopened":
-      return getPayloadString(event.payload, "title") || undefined;
-    case "pipeline_change": {
-      const previousStage = getStageLabelFromPayload(getPayloadString(event.payload, "previous_stage"));
-      const nextStage = getStageLabelFromPayload(getPayloadString(event.payload, "next_stage"));
-
-      if (!previousStage && nextStage) {
-        return `Lead classificado em ${nextStage}.`;
-      }
-
-      if (previousStage && nextStage) {
-        return `${previousStage} -> ${nextStage}`;
-      }
-
-      return undefined;
-    }
-    case "owner_changed": {
-      const previousOwnerLabel = getOwnerLabelFromPayload(
-        event.payload,
-        "previous_owner_label",
-        "previous_owner_id",
-        ownerLabelMap,
-        currentUserId,
-      );
-      const nextOwnerLabel = getOwnerLabelFromPayload(
-        event.payload,
-        "next_owner_label",
-        "next_owner_id",
-        ownerLabelMap,
-        currentUserId,
-      );
-
-      if (!previousOwnerLabel && nextOwnerLabel) {
-        return `Lead atribuido para ${nextOwnerLabel}.`;
-      }
-
-      if (previousOwnerLabel && nextOwnerLabel) {
-        return `${previousOwnerLabel} -> ${nextOwnerLabel}`;
-      }
-
-      if (previousOwnerLabel) {
-        return `${previousOwnerLabel} removido; lead voltou para fila sem responsavel.`;
-      }
-
-      return "Ownership atualizado.";
-    }
-    case "note_added":
-      return getPayloadString(event.payload, "content_preview") || undefined;
-    default:
-      return undefined;
-  }
-}
-
-function getEventTone(eventType: CrmLeadEvent["event_type"]): TimelineItem["tone"] {
-  if (eventType === "task_completed") {
-    return "success";
-  }
-
-  if (eventType === "pipeline_change" || eventType === "owner_changed" || eventType === "note_added") {
-    return "primary";
-  }
-
-  return "muted";
-}
-
-function getEventIcon(eventType: CrmLeadEvent["event_type"]) {
-  switch (eventType) {
-    case "task_added":
-    case "task_completed":
-    case "task_reopened":
-      return <CalendarClock className="h-4 w-4" />;
-    case "pipeline_change":
-      return <Activity className="h-4 w-4" />;
-    case "owner_changed":
-      return <UserRound className="h-4 w-4" />;
-    case "note_added":
-      return <MessageSquare className="h-4 w-4" />;
-    default:
-      return <Clock className="h-4 w-4" />;
-  }
-}
-
-function getPayloadString(payload: Record<string, unknown>, key: string) {
-  const value = payload[key];
-  return typeof value === "string" && value.trim() ? value.trim() : "";
-}
-
-function getStageLabelFromPayload(value: string) {
-  if (!value) {
-    return "";
-  }
-
-  if (
-    value === "novo"
-    || value === "em_contato"
-    || value === "qualificado"
-    || value === "ganho"
-    || value === "perdido"
-  ) {
-    return getLeadStageOptionLabel(value);
-  }
-
-  return value;
-}
-
-function getOwnerLabelFromPayload(
-  payload: Record<string, unknown>,
-  labelKey: string,
-  idKey: string,
-  ownerLabelMap: ReadonlyMap<string, string>,
-  currentUserId?: string,
-) {
-  const explicitLabel = getPayloadString(payload, labelKey);
-
-  if (explicitLabel) {
-    return explicitLabel;
-  }
-
-  const ownerId = getPayloadString(payload, idKey);
-
-  return ownerId ? getOwnerDisplayLabel(ownerId, currentUserId, ownerLabelMap) : "";
-}
-
-function invalidateLeadWorkspace(queryClient: ReturnType<typeof useQueryClient>, leadId?: string) {
-  queryClient.invalidateQueries({ queryKey: ["crm-lead", leadId] });
-  queryClient.invalidateQueries({ queryKey: ["crm-lead-notes", leadId] });
-  queryClient.invalidateQueries({ queryKey: ["crm-lead-events", leadId] });
-  queryClient.invalidateQueries({ queryKey: ["crm-lead-tasks", leadId] });
 }
 
 export default LeadDetailPage;

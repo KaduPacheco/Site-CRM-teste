@@ -1,21 +1,48 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { AuthPermission } from "@/lib/authAccess";
+import { logAppEvent } from "@/lib/appLogger";
 
-const ProtectedRoute = () => {
-  const { session, loading } = useAuth();
+interface ProtectedRouteProps {
+  requiredPermission?: AuthPermission;
+  loginPath?: string;
+  unauthorizedPath?: string;
+}
+
+const ProtectedRoute = ({
+  requiredPermission,
+  loginPath = "/crm/login",
+  unauthorizedPath = "/crm",
+}: ProtectedRouteProps) => {
+  const { session, loading, hasPermission } = useAuth();
   const location = useLocation();
 
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
       </div>
     );
   }
 
   if (!session) {
-    // Redireciona para o login salvando a rota que o usuário tentou acessar
-    return <Navigate to="/crm/login" state={{ from: location }} replace />;
+    return <Navigate to={loginPath} state={{ from: location }} replace />;
+  }
+
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    logAppEvent("auth", "warn", "Acesso negado por permissao", {
+      pathname: location.pathname,
+      requiredPermission,
+      userId: session.user.id,
+    });
+
+    return (
+      <Navigate
+        to={unauthorizedPath}
+        state={{ from: location, reason: "missing_permission", requiredPermission }}
+        replace
+      />
+    );
   }
 
   return <Outlet />;

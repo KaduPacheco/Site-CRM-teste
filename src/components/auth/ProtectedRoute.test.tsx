@@ -1,19 +1,19 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import ProtectedRoute from './ProtectedRoute';
+import { describe, expect, it, vi } from "vitest";
+import { render } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
 
-vi.mock('../../contexts/AuthContext', () => ({
+vi.mock("../../hooks/useAuth", () => ({
   useAuth: vi.fn(),
 }));
 
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from "../../hooks/useAuth";
 
-describe('ProtectedRoute - Seguranca de Rota', () => {
+describe("ProtectedRoute - Seguranca de Rota", () => {
   const mockedUseAuth = vi.mocked(useAuth);
 
-  it('deve exibir o Spinner quando estiver carregando a sessao', () => {
-    mockedUseAuth.mockReturnValue({ session: null, loading: true, user: null, signOut: vi.fn() });
+  it("deve exibir o spinner quando estiver carregando a sessao", () => {
+    mockedUseAuth.mockReturnValue(buildAuthMock({ loading: true }));
 
     render(
       <MemoryRouter>
@@ -21,20 +21,19 @@ describe('ProtectedRoute - Seguranca de Rota', () => {
       </MemoryRouter>,
     );
 
-    const spinner = document.querySelector('.animate-spin');
+    const spinner = document.querySelector(".animate-spin");
     expect(spinner).toBeInTheDocument();
   });
 
-  it("deve permitir acesso ('Outlet') quando houver sessao ativa", async () => {
-    mockedUseAuth.mockReturnValue({
-      session: { user: {} } as never,
-      loading: false,
-      user: null,
-      signOut: vi.fn(),
-    });
+  it("deve permitir acesso quando houver sessao ativa", () => {
+    mockedUseAuth.mockReturnValue(
+      buildAuthMock({
+        session: { user: { id: "user-1" } } as never,
+      }),
+    );
 
     const { getByText } = render(
-      <MemoryRouter initialEntries={['/protected']}>
+      <MemoryRouter initialEntries={["/protected"]}>
         <Routes>
           <Route element={<ProtectedRoute />}>
             <Route path="/protected" element={<div>Conteudo Privado</div>} />
@@ -43,14 +42,14 @@ describe('ProtectedRoute - Seguranca de Rota', () => {
       </MemoryRouter>,
     );
 
-    expect(getByText('Conteudo Privado')).toBeInTheDocument();
+    expect(getByText("Conteudo Privado")).toBeInTheDocument();
   });
 
-  it('deve redirecionar para login quando nao houver sessao', () => {
-    mockedUseAuth.mockReturnValue({ session: null, loading: false, user: null, signOut: vi.fn() });
+  it("deve redirecionar para login quando nao houver sessao", () => {
+    mockedUseAuth.mockReturnValue(buildAuthMock());
 
     const { getByText, queryByText } = render(
-      <MemoryRouter initialEntries={['/protected']}>
+      <MemoryRouter initialEntries={["/protected"]}>
         <Routes>
           <Route element={<ProtectedRoute />}>
             <Route path="/protected" element={<div>Conteudo Privado</div>} />
@@ -60,7 +59,46 @@ describe('ProtectedRoute - Seguranca de Rota', () => {
       </MemoryRouter>,
     );
 
-    expect(getByText('Pagina de Login')).toBeInTheDocument();
-    expect(queryByText('Conteudo Privado')).not.toBeInTheDocument();
+    expect(getByText("Pagina de Login")).toBeInTheDocument();
+    expect(queryByText("Conteudo Privado")).not.toBeInTheDocument();
+  });
+
+  it("deve redirecionar quando a rota exigir permissao ausente", () => {
+    mockedUseAuth.mockReturnValue(
+      buildAuthMock({
+        session: { user: { id: "user-1" } } as never,
+        hasPermission: vi.fn(() => false),
+      }),
+    );
+
+    const { getByText, queryByText } = render(
+      <MemoryRouter initialEntries={["/protected"]}>
+        <Routes>
+          <Route element={<ProtectedRoute requiredPermission="crm:tasks:write" unauthorizedPath="/crm" />}>
+            <Route path="/protected" element={<div>Conteudo Privado</div>} />
+          </Route>
+          <Route path="/crm" element={<div>Dashboard CRM</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(getByText("Dashboard CRM")).toBeInTheDocument();
+    expect(queryByText("Conteudo Privado")).not.toBeInTheDocument();
   });
 });
+
+function buildAuthMock(overrides?: Partial<ReturnType<typeof useAuth>>) {
+  return {
+    session: null,
+    user: null,
+    access: {
+      role: "anonymous" as const,
+      permissions: [],
+    },
+    loading: false,
+    authError: null,
+    hasPermission: vi.fn(() => true),
+    signOut: vi.fn(),
+    ...overrides,
+  };
+}
