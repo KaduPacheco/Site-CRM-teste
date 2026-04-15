@@ -52,6 +52,15 @@ Esse desenho preserva:
 - auth flow
 - rotas publicas ja estabilizadas
 
+## Controle de acesso atual
+
+- `buildAuthAccess` continua derivando o conjunto de permissoes a partir da sessao do usuario
+- `ProtectedRoute` aplica as permissoes por rota sem criar um sistema novo de autorizacao
+- dashboard, analytics e operacao exigem `crm:dashboard:read`
+- leads e detalhe do lead exigem `crm:leads:read`
+- acoes mutaveis do detalhe do lead respeitam `crm:leads:write`, `crm:notes:write` e `crm:tasks:write`
+- o layout principal mostra apenas navegacoes que o usuario autenticado pode acessar com o conjunto atual de permissoes
+
 ## Principios de UI adotados
 
 - separacao por contexto de uso: cada rota responde a uma pergunta operacional diferente

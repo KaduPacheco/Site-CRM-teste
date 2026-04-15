@@ -30,6 +30,8 @@ Este projeto deve usar somente recursos do ambiente de testes para:
 - Landing publica em `/`
 - Login do CRM em `/crm/login`
 - Dashboard em `/crm`
+- Analytics em `/crm/analytics`
+- Operacao em `/crm/operacao`
 - Leads em `/crm/leads`
 - Detalhe do lead em `/crm/leads/:id`
 
@@ -46,16 +48,53 @@ Este projeto deve usar somente recursos do ambiente de testes para:
 O frontend do CRM foi reorganizado em `src/features/crm/`:
 
 - `auth/`: provider, hook, guard, tipos e regras de permissao
-- `dashboard/`: documentacao e referencia da area analitica/operacional do CRM
+- `dashboard/`: dashboard executivo, atalhos, atividade e prioridades
+- `analytics/`: leitura de aquisicao, conversao, funil e canais
+- `operacao/`: leitura comercial da carteira, pipeline e distribuicoes
 - `leads/list/`: pagina de listagem, toolbar, tabela, kanban, paginacao, estado local e selectors
 - `leads/detail/`: pagina de detalhe, cards, paines, drafts e selectors
 - `shared/`: tipos compartilhados, query keys, permissoes, constantes e formatters transversais
+
+## Arquitetura por area
+
+### Landing publica
+
+- rota: `/`
+- papel: captacao publica de leads e tracking da landing
+- servicos principais:
+  - `src/services/leadService.ts`
+  - `src/services/analyticsService.ts`
+
+### Dashboard
+
+- rota: `/crm`
+- papel: visao geral executiva
+- foco: situacao atual, alertas, atividade recente, follow-ups e atalhos operacionais
+
+### Analytics
+
+- rota: `/crm/analytics`
+- papel: leitura analitica da aquisicao
+- foco: performance da landing, conversao por periodo, funil, trafego, canais e origem
+
+### Operacao
+
+- rota: `/crm/operacao`
+- papel: leitura comercial da carteira
+- foco: pipeline, distribuicao por estagio, distribuicao por origem comercial e acompanhamento da execucao
+
+### Leads
+
+- rota: `/crm/leads`
+- papel: workspace operacional da base
+- foco: filtros, tabela, kanban, detalhe do lead, notas, tarefas, ownership e timeline
 
 ### Infraestrutura
 
 A camada de infraestrutura do frontend fica em `src/infra/`.
 
 - `src/infra/supabase/client.ts`: client singleton do Supabase para auth e CRM
+- `src/infra/supabase/env.ts`: leitura tipada e validacao das variaveis publicas do Supabase
 
 Os caminhos antigos continuam disponiveis por re-export quando isso reduz risco de migracao, por exemplo:
 
@@ -84,6 +123,34 @@ Os valores permanecem os mesmos do comportamento anterior, incluindo:
 - `["crm-dashboard", "events"]`
 - `["crm-dashboard", "analytics"]`
 
+### Permissoes do CRM
+
+O CRM reutiliza a modelagem existente de papeis e permissoes no frontend, sem sistema paralelo de autorizacao.
+
+Permissoes atualmente reconhecidas:
+
+- `crm:access`
+- `crm:dashboard:read`
+- `crm:leads:read`
+- `crm:leads:write`
+- `crm:notes:write`
+- `crm:tasks:write`
+
+Aplicacao atual:
+
+- `/crm`, `/crm/analytics` e `/crm/operacao`
+  - exigem `crm:dashboard:read`
+- `/crm/leads` e `/crm/leads/:id`
+  - exigem `crm:leads:read`
+- acoes de etapa e ownership no detalhe do lead
+  - exigem `crm:leads:write`
+- anotacoes no detalhe do lead
+  - exigem `crm:notes:write`
+- tarefas e follow-ups no detalhe do lead
+  - exigem `crm:tasks:write`
+
+Quando uma rota protegida falha por permissao, o frontend usa um fallback seguro calculado a partir do conjunto de permissoes disponivel no usuario autenticado.
+
 ## Ambiente
 
 1. Copie `.env.example` para `.env`.
@@ -101,6 +168,7 @@ VITE_N8N_WEBHOOK_URL=
 
 Observacoes:
 
+- `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` sao obrigatorias para a landing e para o CRM autenticado.
 - `VITE_SUPABASE_INTAKE_URL` e opcional. Quando vazio, a landing usa `${VITE_SUPABASE_URL}/rest/v1/leads`.
 - `VITE_N8N_WEBHOOK_URL` e opcional. Se nao houver automacao de testes isolada, deixe vazio.
 
@@ -133,6 +201,7 @@ npm run build
 
 - A landing publica grava leads via REST no projeto Supabase do ambiente de testes.
 - O CRM usa `supabase-js` com as variaveis publicas do mesmo ambiente de testes para auth, leitura e escrita autenticada.
+- A validacao dessas envs publicas foi centralizada em `src/infra/supabase/env.ts` para reduzir falhas silenciosas de configuracao.
 
 ### n8n
 

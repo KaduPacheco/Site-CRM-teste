@@ -11,7 +11,11 @@ Registrar a arquitetura final do frontend do CRM apos a reorganizacao por featur
 - `/crm/login`:
   pagina de login do CRM dentro do `AuthProvider`, mas sem `ProtectedRoute`.
 - `/crm`:
-  dashboard autenticado do CRM.
+  dashboard executivo autenticado do CRM.
+- `/crm/analytics`:
+  leitura analitica de aquisicao, conversao, canais e funil.
+- `/crm/operacao`:
+  leitura comercial da carteira, pipeline e distribuicoes.
 - `/crm/leads`:
   workspace principal da listagem de leads.
 - `/crm/leads/:id`:
@@ -31,7 +35,7 @@ Fonte principal: [src/App.tsx](/c:/Users/cadup/Documents/PROJETOGPT/Site-CRM/src
 6. rota `login`
 7. `ProtectedRoute`
 8. `CrmLayout`
-9. paginas lazy de dashboard, leads e detalhe
+9. paginas lazy de dashboard, analytics, operacao, leads e detalhe
 
 Pontos preservados:
 
@@ -39,6 +43,39 @@ Pontos preservados:
 - `ProtectedRoute` continua protegendo apenas as rotas autenticadas.
 - `CrmLayout` continua encapsulando dashboard, leads e detalhe.
 - O lazy loading foi aplicado apenas nas paginas do CRM, sem alterar a ordem dos wrappers.
+
+## Politica atual de acesso
+
+As permissoes continuam derivadas por `buildAuthAccess`, sem camada paralela de autorizacao.
+
+Permissoes reconhecidas:
+
+- `crm:access`
+- `crm:dashboard:read`
+- `crm:leads:read`
+- `crm:leads:write`
+- `crm:notes:write`
+- `crm:tasks:write`
+
+Aplicacao atual nas rotas:
+
+- `ProtectedRoute` de entrada do CRM
+  - exige `crm:access`
+- `/crm`, `/crm/analytics`, `/crm/operacao`
+  - exigem `crm:dashboard:read`
+- `/crm/leads` e `/crm/leads/:id`
+  - exigem `crm:leads:read`
+
+Aplicacao atual nas acoes do detalhe do lead:
+
+- etapa e ownership
+  - exigem `crm:leads:write`
+- anotacoes
+  - exigem `crm:notes:write`
+- tarefas e follow-ups
+  - exigem `crm:tasks:write`
+
+Quando o usuario nao possui a permissao pedida, `ProtectedRoute` calcula o melhor fallback seguro a partir do proprio conjunto de permissoes.
 
 ## Organizacao final por feature
 
@@ -82,6 +119,30 @@ Responsavel pelo detalhe/workspace do lead:
 - `hooks/useLeadDetailDrafts.ts`
 - `selectors/leadDetailSelectors.ts`
 
+### `src/features/crm/dashboard`
+
+Responsavel pela home executiva do CRM:
+
+- `page/DashboardPage.tsx`
+- componentes de leitura rapida, atividade, atencao, follow-ups e atalhos
+- `useCrmDashboardData.ts` como orquestrador de datasets e builders reutilizados
+
+### `src/features/crm/analytics`
+
+Responsavel pela leitura analitica da aquisicao:
+
+- `page/AnalyticsPage.tsx`
+- componentes de KPI, timeline, funil, origem do trafego e comparativos de canal
+- reaproveita o mesmo `useCrmDashboardData.ts` sem alterar query keys ou services
+
+### `src/features/crm/operacao`
+
+Responsavel pela leitura comercial da carteira:
+
+- `page/OperacaoPage.tsx`
+- componentes de pipeline, distribuicao por estagio e origem comercial
+- reaproveita os mesmos datasets do dashboard para leitura operacional isolada
+
 ### `src/features/crm/shared`
 
 Nucleo compartilhado do CRM:
@@ -99,6 +160,7 @@ Nucleo compartilhado do CRM:
 Camada de infraestrutura reutilizavel:
 
 - `supabase/client.ts`: client singleton do Supabase
+- `supabase/env.ts`: leitura tipada e validacao das envs publicas
 
 Compatibilidade preservada:
 
@@ -133,6 +195,21 @@ Valores preservados:
 - `["crm-dashboard", "events"]`
 - `["crm-dashboard", "analytics"]`
 
+## Papel atual de cada area do produto
+
+- `/crm`
+  - dashboard executivo
+  - foco em visao geral, alertas, atividade recente e proximos passos
+- `/crm/analytics`
+  - area analitica
+  - foco em performance da landing, trafego, conversao, funil e canais
+- `/crm/operacao`
+  - area operacional/comercial
+  - foco em pipeline, distribuicoes e leitura da carteira
+- `/crm/leads`
+  - workspace operacional da base
+  - foco em filtros, tabela, kanban, detalhe, notas, tarefas e timeline
+
 ## Regras de compatibilidade preservadas
 
 - O CRM continua separado da landing publica na arvore de rotas.
@@ -148,6 +225,8 @@ As paginas abaixo sao carregadas via `React.lazy`:
 
 - `LoginPage`
 - `DashboardPage`
+- `AnalyticsPage`
+- `OperacaoPage`
 - `LeadsPage`
 - `LeadDetailPage`
 
