@@ -1,132 +1,214 @@
-# ⏰ Ponto Eletrônico — Landing Page
+# Site CRM - Ambiente de Testes
 
-Landing page de captação de leads para sistema de ponto eletrônico corporativo voltado a PMEs.
+Repositorio do ambiente de testes que concentra duas areas no mesmo frontend:
 
-## 🛠️ Stack Tecnológica
+- landing publica em `/`
+- CRM autenticado em `/crm`
 
-| Tecnologia | Uso |
-|---|---|
-| **React 18** | Biblioteca de UI |
-| **TypeScript** | Tipagem estática |
-| **Vite** | Bundler e dev server |
-| **Tailwind CSS 3** | Estilização utility-first |
-| **shadcn/ui** | Componentes UI (Radix + CVA) |
-| **Zod** | Validação de formulários |
-| **React Router** | Roteamento SPA |
-| **React Query** | Gerenciamento de estado async |
-| **Lucide React** | Ícones |
+Este projeto deve usar somente recursos do ambiente de testes para:
 
-## 📁 Estrutura do Projeto
+- desenvolvimento local
+- execucao de testes
+- deploy
+- autenticacao
+- banco de dados
+- webhooks e integracoes externas
 
-```
-src/
-├── main.tsx                      # Entry point da aplicação
-├── App.tsx                       # Root component (providers + rotas)
-│
-├── assets/
-│   └── images/                   # Imagens estáticas (logo, mockups)
-│
-├── components/
-│   ├── layout/                   # Componentes estruturais
-│   │   ├── Header.tsx            # Navbar fixa
-│   │   └── Footer.tsx            # Rodapé
-│   ├── sections/                 # Seções da landing page
-│   │   ├── Hero.tsx              # Banner principal
-│   │   ├── Problems.tsx          # Problemas do público-alvo
-│   │   ├── Solution.tsx          # Funcionalidades do sistema
-│   │   ├── Benefits.tsx          # Benefícios para o cliente
-│   │   ├── SocialProof.tsx       # Depoimentos e métricas
-│   │   ├── Pricing.tsx           # Tabela de preços
-│   │   ├── Security.tsx          # Segurança e conformidade
-│   │   ├── LeadForm.tsx          # Formulário de captação
-│   │   └── FinalCTA.tsx          # Call-to-action final
-│   └── ui/                       # Componentes primitivos (shadcn/ui)
-│       ├── Button.tsx
-│       ├── Input.tsx
-│       ├── Toast.tsx
-│       ├── Toaster.tsx
-│       └── Tooltip.tsx
-│
-├── hooks/
-│   ├── useToast.ts               # Sistema de notificações toast
-│   └── useScrollAnimation.ts     # Animação on-scroll (IntersectionObserver)
-│
-├── services/
-│   └── leadService.ts            # Integração com Supabase e webhook n8n
-│
-├── styles/
-│   └── globals.css               # Design tokens, variáveis CSS e animações
-│
-├── utils/
-│   └── cn.ts                     # Utilitário de merge de classes (clsx + twMerge)
-│
-└── pages/
-    ├── HomePage.tsx               # Página principal (monta todas as seções)
-    └── NotFoundPage.tsx           # Página 404
-```
+## Stack
 
-## 🚀 Desenvolvimento
+- React 18
+- TypeScript
+- Vite
+- React Router
+- TanStack Query
+- Supabase JS
+- Tailwind CSS
+- Vitest
 
-### Pré-requisitos
+## Fluxos principais
 
-- Node.js >= 18
-- npm, yarn ou bun
+- Landing publica em `/`
+- Login do CRM em `/crm/login`
+- Dashboard em `/crm`
+- Analytics em `/crm/analytics`
+- Operacao em `/crm/operacao`
+- Leads em `/crm/leads`
+- Detalhe do lead em `/crm/leads/:id`
 
-### Instalação
+## Arquitetura atual
+
+### Separacao entre landing e CRM
+
+- A landing publica continua fora do contexto de auth do CRM.
+- O CRM fica isolado dentro da arvore `/crm`, com `AuthProvider`, `ProtectedRoute` e `CrmLayout`.
+- As paginas do CRM sao carregadas via lazy loading em `src/App.tsx`, reduzindo acoplamento de bundle entre a landing e a area autenticada.
+
+### Organizacao por feature
+
+O frontend do CRM foi reorganizado em `src/features/crm/`:
+
+- `auth/`: provider, hook, guard, tipos e regras de permissao
+- `dashboard/`: dashboard executivo, atalhos, atividade e prioridades
+- `analytics/`: leitura de aquisicao, conversao, funil e canais
+- `operacao/`: leitura comercial da carteira, pipeline e distribuicoes
+- `leads/list/`: pagina de listagem, toolbar, tabela, kanban, paginacao, estado local e selectors
+- `leads/detail/`: pagina de detalhe, cards, paines, drafts e selectors
+- `shared/`: tipos compartilhados, query keys, permissoes, constantes e formatters transversais
+
+## Arquitetura por area
+
+### Landing publica
+
+- rota: `/`
+- papel: captacao publica de leads e tracking da landing
+- servicos principais:
+  - `src/services/leadService.ts`
+  - `src/services/analyticsService.ts`
+
+### Dashboard
+
+- rota: `/crm`
+- papel: visao geral executiva
+- foco: situacao atual, alertas, atividade recente, follow-ups e atalhos operacionais
+
+### Analytics
+
+- rota: `/crm/analytics`
+- papel: leitura analitica da aquisicao
+- foco: performance da landing, conversao por periodo, funil, trafego, canais e origem
+
+### Operacao
+
+- rota: `/crm/operacao`
+- papel: leitura comercial da carteira
+- foco: pipeline, distribuicao por estagio, distribuicao por origem comercial e acompanhamento da execucao
+
+### Leads
+
+- rota: `/crm/leads`
+- papel: workspace operacional da base
+- foco: filtros, tabela, kanban, detalhe do lead, notas, tarefas, ownership e timeline
+
+### Infraestrutura
+
+A camada de infraestrutura do frontend fica em `src/infra/`.
+
+- `src/infra/supabase/client.ts`: client singleton do Supabase para auth e CRM
+- `src/infra/supabase/env.ts`: leitura tipada e validacao das variaveis publicas do Supabase
+
+Os caminhos antigos continuam disponiveis por re-export quando isso reduz risco de migracao, por exemplo:
+
+- `src/lib/supabase.ts`
+- `src/types/crm.ts`
+- `src/types/dashboard.ts`
+- `src/lib/authAccess.ts`
+
+### Query keys compartilhadas
+
+As query keys criticas do CRM foram centralizadas em:
+
+- `src/features/crm/shared/queryKeys/crmQueryKeys.ts`
+
+Os valores permanecem os mesmos do comportamento anterior, incluindo:
+
+- `["crm-leads"]`
+- `["crm-leads-task-overview"]`
+- `["crm-lead", leadId]`
+- `["crm-owner-ids"]`
+- `["crm-lead-notes", leadId]`
+- `["crm-lead-events", leadId]`
+- `["crm-lead-tasks", leadId]`
+- `["crm-dashboard", "leads"]`
+- `["crm-dashboard", "tasks"]`
+- `["crm-dashboard", "events"]`
+- `["crm-dashboard", "analytics"]`
+
+### Permissoes do CRM
+
+O CRM reutiliza a modelagem existente de papeis e permissoes no frontend, sem sistema paralelo de autorizacao.
+
+Permissoes atualmente reconhecidas:
+
+- `crm:access`
+- `crm:dashboard:read`
+- `crm:leads:read`
+- `crm:leads:write`
+- `crm:notes:write`
+- `crm:tasks:write`
+
+Aplicacao atual:
+
+- `/crm`, `/crm/analytics` e `/crm/operacao`
+  - exigem `crm:dashboard:read`
+- `/crm/leads` e `/crm/leads/:id`
+  - exigem `crm:leads:read`
+- acoes de etapa e ownership no detalhe do lead
+  - exigem `crm:leads:write`
+- anotacoes no detalhe do lead
+  - exigem `crm:notes:write`
+- tarefas e follow-ups no detalhe do lead
+  - exigem `crm:tasks:write`
+
+Quando uma rota protegida falha por permissao, o frontend usa um fallback seguro calculado a partir do conjunto de permissoes disponivel no usuario autenticado.
+
+## Ambiente
+
+1. Copie `.env.example` para `.env`.
+2. Preencha apenas com valores do ambiente de testes.
+3. Nunca reutilize URL, chave, webhook, callback ou dominio do ambiente principal neste repositorio.
+
+Variaveis esperadas:
 
 ```bash
-# Clonar repositório
-git clone https://github.com/KaduPacheco/CapturaLeeds.git
-cd CapturaLeeds
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_SUPABASE_INTAKE_URL=
+VITE_N8N_WEBHOOK_URL=
+```
 
-# Instalar dependências
+Observacoes:
+
+- `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` sao obrigatorias para a landing e para o CRM autenticado.
+- `VITE_SUPABASE_INTAKE_URL` e opcional. Quando vazio, a landing usa `${VITE_SUPABASE_URL}/rest/v1/leads`.
+- `VITE_N8N_WEBHOOK_URL` e opcional. Se nao houver automacao de testes isolada, deixe vazio.
+
+## Instalacao
+
+```bash
+git clone https://github.com/KaduPacheco/Site-CRM-teste.git
+cd Site-CRM-teste
 npm install
 ```
 
-### Executar em desenvolvimento
+## Desenvolvimento
 
 ```bash
 npm run dev
 ```
 
-O servidor inicia em `http://localhost:8080`.
+Servidor local padrao: `http://localhost:8080`
 
-### Build de produção
+## Validacao local
 
 ```bash
+npm run test
 npm run build
-npm run preview
 ```
 
-### Linting
-
-```bash
-npm run lint
-```
-
-## 🔌 Integrações
+## Integracoes
 
 ### Supabase
-O formulário de leads envia dados para uma tabela `leads` no Supabase via REST API (sem SDK).
 
-### n8n Webhook
-Após salvar no Supabase, os dados são replicados para um webhook n8n para automações (notificações, CRM, etc.). Falhas no webhook não bloqueiam o fluxo principal.
+- A landing publica grava leads via REST no projeto Supabase do ambiente de testes.
+- O CRM usa `supabase-js` com as variaveis publicas do mesmo ambiente de testes para auth, leitura e escrita autenticada.
+- A validacao dessas envs publicas foi centralizada em `src/infra/supabase/env.ts` para reduzir falhas silenciosas de configuracao.
 
-## 📋 Melhorias Futuras
+### n8n
 
-| Melhoria | Descrição |
-|---|---|
-| **Testes unitários** | Adicionar testes com Vitest para componentes e serviços |
-| **Testes E2E** | Cypress ou Playwright para validar fluxo de conversão |
-| **Variáveis de ambiente** | Mover `SUPABASE_URL` e `SUPABASE_ANON_KEY` para `.env` |
-| **SEO avançado** | Adicionar `<link rel="icon">` no `<head>`, structured data (JSON-LD) |
-| **Acessibilidade** | Melhorar labels ARIA, focus management, skip links |
-| **Internacionalização** | Preparar para i18n caso escale para outros idiomas |
-| **Analytics** | Integrar Google Analytics / Plausible para métricas de conversão |
-| **Performance** | Lazy loading de seções abaixo do fold, otimização de imagens (WebP) |
-| **CI/CD** | GitHub Actions para lint, build e deploy automático |
-| **Dark mode** | Ativar toggle de tema (variáveis CSS já preparadas) |
+- O webhook e opcional.
+- Se existir, deve apontar para uma automacao isolada do ambiente de testes.
+- Falhas no webhook nao devem impedir a gravacao principal no banco.
 
-## 📄 Licença
+## Observacao operacional
 
-Projeto privado — todos os direitos reservados.
+Nao existe arquivo `.vercel/project.json` versionado neste repositorio. O vinculo do deploy deve ser conferido manualmente na Vercel para garantir que o projeto conectado tambem seja o ambiente de testes.
