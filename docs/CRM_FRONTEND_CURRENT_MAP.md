@@ -23,7 +23,7 @@ Registrar a arquitetura final do frontend do CRM apos a reorganizacao por featur
 - `*`:
   fallback global para `NotFoundPage`.
 
-Fonte principal: [src/App.tsx](/c:/Users/cadup/Documents/PROJETOGPT/Site-CRM/src/App.tsx)
+Fonte principal: `src/App.tsx`
 
 ## Arvore de rotas do CRM
 
@@ -41,7 +41,7 @@ Pontos preservados:
 
 - `AuthProvider` continua acima de login e da area protegida.
 - `ProtectedRoute` continua protegendo apenas as rotas autenticadas.
-- `CrmLayout` continua encapsulando dashboard, leads e detalhe.
+- `CrmLayout` continua encapsulando dashboard, analytics, operacao, leads e detalhe.
 - O lazy loading foi aplicado apenas nas paginas do CRM, sem alterar a ordem dos wrappers.
 
 ## Politica atual de acesso
@@ -117,6 +117,7 @@ Responsavel pelo detalhe/workspace do lead:
 - `page/LeadDetailPage.tsx`
 - componentes de header, identidade, pipeline/ownership, tasks, timeline, quick note e resumo operacional
 - `hooks/useLeadDetailDrafts.ts`
+- `hooks/useLeadWorkspace.ts`
 - `selectors/leadDetailSelectors.ts`
 
 ### `src/features/crm/dashboard`
@@ -164,14 +165,16 @@ Camada de infraestrutura reutilizavel:
 
 Compatibilidade preservada:
 
-- [src/lib/supabase.ts](/c:/Users/cadup/Documents/PROJETOGPT/Site-CRM/src/lib/supabase.ts) continua existindo como fachada segura
+- `src/lib/supabase.ts` continua existindo como fachada segura
 
 ## Servicos e contratos
 
-Os services permanecem como camada de acesso a dados e nao foram reorganizados para dentro de `features`:
+Os services publicos continuam acessiveis pelos caminhos legados e pelas fachadas por feature:
 
-- [src/services/crmService.ts](/c:/Users/cadup/Documents/PROJETOGPT/Site-CRM/src/services/crmService.ts)
-- [src/services/dashboardService.ts](/c:/Users/cadup/Documents/PROJETOGPT/Site-CRM/src/services/dashboardService.ts)
+- `src/services/crmService.ts`
+- `src/services/dashboardService.ts`
+- `src/features/crm/leads/shared/services/crmService.ts`
+- `src/features/crm/dashboard/services/dashboardService.ts`
 
 No dashboard, o service foi fatiado internamente, mas segue exposto por uma fachada de compatibilidade em `src/services/dashboardService.ts`.
 
@@ -179,7 +182,7 @@ No dashboard, o service foi fatiado internamente, mas segue exposto por uma fach
 
 As query keys foram centralizadas em:
 
-- [src/features/crm/shared/queryKeys/crmQueryKeys.ts](/c:/Users/cadup/Documents/PROJETOGPT/Site-CRM/src/features/crm/shared/queryKeys/crmQueryKeys.ts)
+- `src/features/crm/shared/queryKeys/crmQueryKeys.ts`
 
 Valores preservados:
 
