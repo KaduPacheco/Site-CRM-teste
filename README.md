@@ -28,12 +28,37 @@ Este projeto deve usar somente recursos do ambiente de testes para:
 ## Fluxos principais
 
 - Landing publica em `/`
+- Politica de Privacidade em `/politica-de-privacidade`
+- Termos de Uso em `/termos-de-uso`
 - Login do CRM em `/crm/login`
 - Dashboard em `/crm`
 - Analytics em `/crm/analytics`
 - Operacao em `/crm/operacao`
 - Leads em `/crm/leads`
 - Detalhe do lead em `/crm/leads/:id`
+
+## Refatoracao recente da landing publica
+
+A landing publica em `/` passou por uma refatoracao focada em comunicacao comercial, conversao, confianca e SEO da area publica, sem reposicionar o CRM nem alterar contratos da captacao existente.
+
+O que mudou na area publica:
+
+- reposicionamento da mensagem comercial da home para enfatizar clareza operacional, proposta de valor e proximos passos do contato
+- reorganizacao das secoes da landing com foco em problemas, solucao, beneficios, confianca, precos, seguranca, FAQ, CTA final e formulario
+- inclusao das paginas publicas de `Politica de Privacidade` e `Termos de Uso`, ambas roteadas em `src/App.tsx`
+- reforco de SEO da area publica com metadados por pagina via `src/hooks/usePageMeta.ts` e ajustes de metadados base em `index.html`
+
+O que foi preservado:
+
+- a separacao estrutural entre landing publica em `/` e CRM autenticado em `/crm`
+- a captacao de leads da landing por `src/services/leadService.ts`, incluindo envio principal ao Supabase e webhook opcional do n8n
+- o tracking existente da landing em `src/services/analyticsService.ts`, sem remocao dos tipos de evento ja usados
+- o comportamento funcional do CRM, que continua isolado por `AuthProvider`, `ProtectedRoute` e `CrmLayout`
+
+Observacao importante:
+
+- esta etapa documenta uma refatoracao da area publica; o CRM nao foi alterado funcionalmente por esse trabalho
+- detalhes tecnicos adicionais da area publica estao em `docs/LANDING_PUBLICA.md`
 
 ## Arquitetura atual
 
