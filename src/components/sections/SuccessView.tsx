@@ -6,17 +6,17 @@ const nextSteps = [
   {
     icon: MessageSquareMore,
     title: "Contato inicial",
-    description: "Nossa equipe comercial deve retornar em até 1 dia útil para confirmar contexto, equipe e prioridade da operação.",
+    description: "Nossa equipe comercial deve retornar em ate 1 dia util para confirmar contexto, equipe e prioridade da operacao.",
   },
   {
     icon: Telescope,
-    title: "Diagnóstico do cenário",
-    description: "Vamos entender como a jornada é controlada hoje e onde estão os principais gargalos do fechamento.",
+    title: "Diagnostico do cenario",
+    description: "Vamos entender como a jornada e controlada hoje e onde estao os principais gargalos do fechamento.",
   },
   {
     icon: ShieldCheck,
-    title: "Demonstração orientada",
-    description: "A apresentação da plataforma foca na rotina da sua empresa, sem discurso genérico nem promessas desnecessárias.",
+    title: "Demonstracao orientada",
+    description: "A apresentacao da plataforma foca na rotina da sua empresa, com avaliacao objetiva de aderencia ao cenario informado.",
   },
 ];
 
@@ -26,17 +26,15 @@ const SuccessView = () => {
       <section className="bg-hero-gradient py-24 text-center text-primary-foreground">
         <div className="container mx-auto max-w-3xl">
           <CheckCircle2 className="mx-auto mb-8 h-20 w-20 text-secondary" />
-          <h1 className="mb-6 text-4xl font-extrabold tracking-tight md:text-5xl">Solicitação enviada com sucesso.</h1>
+          <h1 className="mb-6 text-4xl font-extrabold tracking-tight md:text-5xl">Solicitacao enviada com sucesso.</h1>
           <p className="mb-10 text-lg font-medium leading-8 opacity-90 md:text-xl">
-            Recebemos seus dados. O próximo passo é um contato comercial para entender a operação, alinhar expectativas e mostrar
-            como a plataforma pode apoiar a gestão da jornada da sua equipe.
+            Recebemos seus dados. O proximo passo e um contato comercial para entender a operacao, alinhar expectativas e mostrar como a plataforma pode apoiar a gestao da jornada da sua equipe.
           </p>
 
           <div className="rounded-2xl border border-white/10 bg-white/10 p-5 text-left shadow-xl">
             <p className="text-sm uppercase tracking-[0.2em] text-primary-foreground/70">O que esperar agora</p>
             <p className="mt-3 text-base leading-7 text-primary-foreground/92">
-              Retorno em até <strong>1 dia útil</strong>, normalmente por WhatsApp ou e-mail, para combinar a melhor forma de apresentar
-              a solução para o seu contexto.
+              Retorno em ate <strong>1 dia util</strong>, normalmente por WhatsApp ou e-mail, para combinar a melhor forma de apresentar a solucao para o seu contexto.
             </p>
           </div>
 
@@ -47,13 +45,13 @@ const SuccessView = () => {
                 onClick={() => {
                   void trackCtaClick({
                     cta_id: "success_view_cta_revisar_solucao",
-                    cta_label: "Revisar solução",
+                    cta_label: "Revisar solucao",
                     placement: "success_view",
                     target: "/#solucao",
                   });
                 }}
               >
-                Revisar a solução
+                Revisar a solucao
                 <ArrowRight className="h-5 w-5" />
               </a>
             </Button>
@@ -64,9 +62,9 @@ const SuccessView = () => {
       <section className="bg-background py-24">
         <div className="container mx-auto max-w-5xl">
           <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-extrabold text-foreground md:text-4xl">Próximos passos da conversa</h2>
+            <h2 className="mb-4 text-3xl font-extrabold text-foreground md:text-4xl">Proximos passos da conversa</h2>
             <p className="text-xl text-muted-foreground">
-              Mantivemos esta etapa simples para reduzir ansiedade e deixar claro como o atendimento evolui.
+              O atendimento segue uma sequencia simples para entender o cenario da empresa e avaliar a aderencia da plataforma.
             </p>
           </div>
 

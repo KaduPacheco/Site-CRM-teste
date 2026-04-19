@@ -2,34 +2,34 @@ import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 
 const faqs = [
   {
-    question: "Como os funcionários registram o ponto?",
+    question: "Como os funcionarios registram o ponto?",
     answer:
-      "Na demonstração, avaliamos a rotina da empresa e apresentamos o fluxo mais adequado para o registro e acompanhamento da jornada.",
+      "O registro pode ser feito pelos canais ja suportados pela plataforma, conforme a rotina definida para a empresa. Na implantacao, ajustamos o fluxo mais adequado para a operacao.",
   },
   {
     question: "Funciona para equipe externa, presencial e home office?",
     answer:
-      "A proposta comercial atende operações presenciais, externas e híbridas, com gestão centralizada para RH, DP e lideranças.",
+      "Sim. A plataforma foi pensada para acompanhar diferentes rotinas de trabalho com gestao centralizada para RH, DP e liderancas.",
   },
   {
-    question: "Como funciona o teste grátis?",
+    question: "Como funciona o teste gratis?",
     answer:
-      "O teste grátis de 14 dias permite avaliar aderência operacional antes de avançar para uma contratação comercial.",
+      "O teste de 14 dias e usado para validar a aderencia da plataforma a rotina da empresa apos o alinhamento inicial com o time comercial.",
   },
   {
     question: "O sistema ajuda no fechamento da folha?",
     answer:
-      "Sim. A plataforma foi pensada para organizar informações de jornada, horas extras, banco de horas e pendências com mais clareza no fechamento.",
+      "Sim. A plataforma organiza informacoes da jornada para reduzir retrabalho, facilitar conferencias e apoiar o fechamento com mais clareza.",
   },
   {
-    question: "Preciso de relógio de ponto físico?",
+    question: "Preciso de relogio de ponto fisico?",
     answer:
-      "Nem sempre. O cenário ideal depende da operação, e isso é validado durante a demonstração para evitar uma recomendação genérica.",
+      "Nao necessariamente. A avaliacao inicial considera a rotina da empresa para definir o fluxo mais adequado dentro do que a plataforma suporta hoje.",
   },
   {
-    question: "Como funciona a implantação?",
+    question: "Como funciona a implantacao?",
     answer:
-      "O processo começa com diagnóstico do cenário e orientação inicial para reduzir atrito na adoção e no uso pelos times envolvidos.",
+      "A implantacao comeca com alinhamento do cenario da empresa e apoio inicial para reduzir atrito no comeco do uso.",
   },
 ];
 
@@ -42,10 +42,10 @@ const FaqSection = () => {
         <div className="mx-auto mb-14 max-w-3xl text-center">
           <span className="text-sm font-bold uppercase tracking-widest text-primary">Perguntas frequentes</span>
           <h2 id="faq-title" className="mt-3 text-3xl font-extrabold leading-tight text-foreground md:text-4xl">
-            Respostas objetivas para reduzir atrito na decisão.
+            Respostas objetivas para a avaliacao inicial da sua operacao.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            O FAQ ajuda a esclarecer o que costuma travar a avaliação de uma solução de ponto eletrônico sem prometer além do que faz sentido.
+            Confira os principais pontos sobre uso, implantacao, teste e aderencia da plataforma antes da demonstracao.
           </p>
         </div>
 

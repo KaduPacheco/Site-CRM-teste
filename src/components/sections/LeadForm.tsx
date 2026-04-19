@@ -17,9 +17,10 @@ const FORM_ID = "landing_lead_form";
 const SECTION_ID = "contato";
 
 const trustPoints = [
-  "Retorno comercial em até 1 dia útil",
-  "Teste grátis de 14 dias",
-  "Sem alterar a forma como seus leads já são captados",
+  "Retorno comercial em ate 1 dia util",
+  "Demonstracao consultiva",
+  "Teste gratis de 14 dias",
+  "Apoio para avaliar a aderencia a rotina da empresa",
 ] as const;
 
 const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
@@ -104,7 +105,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         elapsed_ms: getElapsedMs(),
       });
 
-      toast({ title: "Sua solicitação foi recebida." });
+      toast({ title: "Sua solicitacao foi recebida." });
 
       if (onSuccess) {
         onSuccess();
@@ -142,7 +143,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       toast({
         title: "Cadastro realizado!",
-        description: "Em breve entraremos em contato com você.",
+        description: "Em breve entraremos em contato com voce.",
       });
     } catch (error) {
       void trackLeadFormSubmitError({
@@ -155,7 +156,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       toast({
         title: "Erro ao enviar",
-        description: "Não foi possível enviar seus dados. Tente novamente.",
+        description: "Nao foi possivel enviar seus dados. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -169,7 +170,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         <div className="container text-center text-primary-foreground">
           <CheckCircle className="mx-auto mb-6 h-16 w-16 text-secondary" />
           <h2 className="mb-4 text-3xl font-extrabold">Obrigado pelo interesse.</h2>
-          <p className="text-lg opacity-90">Nossa equipe deve retornar em até 1 dia útil.</p>
+          <p className="text-lg opacity-90">Nossa equipe deve retornar em ate 1 dia util.</p>
         </div>
       </section>
     );
@@ -180,12 +181,12 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       <div className="container" ref={ref}>
         <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div className={`text-primary-foreground ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/70">Demonstração e teste</span>
+            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/70">Demonstracao e teste</span>
             <h2 id="lead-form-title" className="mt-4 text-3xl font-extrabold md:text-4xl">
-              Fale com um especialista e veja se a plataforma faz sentido para a sua operação.
+              Solicite uma demonstracao e veja se a plataforma faz sentido para a sua operacao.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-8 text-primary-foreground/84">
-              Preencha seus dados e nossa equipe comercial retorna para entender o cenário da empresa, apresentar a solução e orientar o melhor próximo passo.
+              Preencha seus dados e nossa equipe comercial retorna para entender o cenario da empresa, apresentar a solucao e orientar o melhor proximo passo.
             </p>
 
             <div className="mt-8 space-y-3">
@@ -216,9 +217,9 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             />
 
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-foreground">Solicitar demonstração</h3>
+              <h3 className="text-2xl font-bold text-foreground">Solicitar demonstracao</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Campos essenciais para nosso time preparar um contato comercial mais útil para a sua realidade.
+                Campos essenciais para nosso time preparar um contato comercial mais util para a sua realidade.
               </p>
             </div>
 
@@ -271,7 +272,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
               <div>
                 <label htmlFor="email" className="mb-2 block text-sm font-medium text-foreground">
-                  E-mail corporativo
+                  E-mail profissional
                 </label>
                 <Input
                   id="email"
@@ -316,7 +317,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
               <div>
                 <label htmlFor="employees" className="mb-2 block text-sm font-medium text-foreground">
-                  Quantidade de funcionários
+                  Quantidade de funcionarios
                 </label>
                 <Input
                   id="employees"
@@ -340,19 +341,19 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
             <Button variant="cta" type="submit" className="mt-6 h-14 w-full rounded-xl text-lg" disabled={isSubmitting || submitted}>
               <Send className={`mr-2 h-5 w-5 ${isSubmitting ? "animate-pulse" : ""}`} />
-              {isSubmitting ? "Enviando..." : "Quero agendar minha demonstração"}
+              {isSubmitting ? "Enviando..." : "Solicitar demonstracao"}
             </Button>
 
             <p className="mt-4 text-center text-xs leading-6 text-muted-foreground">
-              Ao enviar, você concorda com nossos{" "}
+              Ao enviar, voce concorda com nossos{" "}
               <a href="/termos-de-uso" className="font-medium text-primary underline-offset-4 hover:underline">
                 Termos de Uso
               </a>{" "}
               e com a{" "}
               <a href="/politica-de-privacidade" className="font-medium text-primary underline-offset-4 hover:underline">
-                Política de Privacidade
+                Politica de Privacidade
               </a>
-              . Seus dados serão usados apenas para contato comercial e apresentação da plataforma.
+              . Seus dados serao usados apenas para contato comercial e apresentacao da plataforma.
             </p>
           </form>
         </div>

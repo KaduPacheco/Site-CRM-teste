@@ -4,18 +4,18 @@ import { BriefcaseBusiness, Building2, HeartHandshake, Shield, TimerReset, Waypo
 const segments = [
   {
     icon: Building2,
-    title: "Pequenas e médias empresas",
-    description: "Estrutura comercial pensada para operações que precisam ganhar controle sem adicionar complexidade desnecessária.",
+    title: "Pequenas e medias empresas",
+    description: "Estrutura comercial pensada para operacoes que precisam ganhar controle sem adicionar complexidade desnecessaria.",
   },
   {
     icon: BriefcaseBusiness,
     title: "RH, DP e gestores",
-    description: "Uma proposta orientada para quem fecha folha, acompanha jornada e precisa agir com base em dados confiáveis.",
+    description: "Uma proposta orientada para quem fecha folha, acompanha jornada e precisa agir com base em dados mais confiaveis.",
   },
   {
     icon: Waypoints,
-    title: "Equipes presenciais, externas ou híbridas",
-    description: "A plataforma foi desenhada para apoiar diferentes rotinas de jornada e centralizar a gestão em um mesmo fluxo.",
+    title: "Equipes presenciais, externas ou hibridas",
+    description: "A plataforma foi desenhada para apoiar diferentes rotinas de jornada e centralizar a gestao em um mesmo fluxo.",
   },
 ];
 
@@ -23,17 +23,17 @@ const trustBlocks = [
   {
     icon: Shield,
     title: "Conformidade operacional",
-    description: "Desenvolvido para apoiar rotinas de controle de jornada conforme regras aplicáveis e processos internos da empresa.",
+    description: "Estrutura pensada para apoiar rotinas de controle de jornada conforme regras aplicaveis e processos internos da empresa.",
   },
   {
     icon: TimerReset,
     title: "Rastreabilidade",
-    description: "Estrutura preparada para histórico de alterações, conferência e rotinas auditáveis no dia a dia da operação.",
+    description: "Historico organizado para conferencia, acompanhamento e rotinas auditaveis no dia a dia da operacao.",
   },
   {
     icon: HeartHandshake,
-    title: "Implantação assistida e suporte humano",
-    description: "O processo comercial é conduzido com acompanhamento próximo para reduzir fricção no início do uso.",
+    title: "Implantacao assistida e suporte humano",
+    description: "Apoio proximo na implantacao para reduzir atrito no inicio do uso e acelerar a adaptacao da equipe.",
   },
 ];
 
@@ -46,11 +46,10 @@ const TrustSection = () => {
         <div className="mx-auto mb-16 max-w-3xl text-center">
           <span className="text-sm font-bold uppercase tracking-widest text-primary">Por que confiar</span>
           <h2 id="trust-title" className="mt-3 text-3xl font-extrabold leading-tight text-foreground md:text-4xl">
-            Confiança construída por clareza operacional, não por promessas vazias.
+            Confianca construida por clareza operacional, nao por promessas vazias.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Quando ainda não existe prova social pública disponível, a melhor forma de transmitir segurança é mostrar contexto,
-            responsabilidade técnica e o tipo de operação para a qual a solução faz sentido.
+            A proposta combina processo claro, historico rastreavel e implantacao assistida para apoiar a digitalizacao do controle de jornada com mais seguranca.
           </p>
         </div>
 
@@ -74,9 +73,9 @@ const TrustSection = () => {
 
         <div className="rounded-[2rem] border border-border bg-section-alt p-8 md:p-12">
           <div className="mb-10 max-w-2xl">
-            <h3 className="text-2xl font-bold text-foreground md:text-3xl">Blocos de confiança para uma decisão mais segura</h3>
+            <h3 className="text-2xl font-bold text-foreground md:text-3xl">Pilares de confianca para uma decisao mais segura</h3>
             <p className="mt-3 text-muted-foreground">
-              Em vez de depoimentos genéricos, deixamos explícitos os pilares que sustentam a proposta comercial da landing.
+              Clareza operacional, historico rastreavel e implantacao assistida ajudam a avaliar a aderencia da plataforma com mais seguranca.
             </p>
           </div>
 

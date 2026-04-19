@@ -6,25 +6,25 @@ const solutions = [
     icon: ClipboardList,
     title: "Registro e acompanhamento da jornada",
     description:
-      "Centralize informações da rotina da equipe em uma única plataforma, com menos dependência de controles paralelos.",
+      "Centralize informacoes da rotina da equipe em uma unica plataforma, com menos dependencia de controles paralelos.",
   },
   {
     icon: BarChart3,
-    title: "Menos esforço no fechamento",
+    title: "Menos esforco no fechamento",
     description:
       "Organize horas extras, banco de horas, faltas e ajustes com mais clareza para o fechamento da folha.",
   },
   {
     icon: LayoutDashboard,
-    title: "Visibilidade para RH e gestão",
+    title: "Visibilidade para RH e gestao",
     description:
-      "Dê contexto operacional para quem precisa acompanhar a equipe e agir rápido em desvios da jornada.",
+      "De contexto operacional para quem precisa acompanhar a equipe e agir rapido em desvios da jornada.",
   },
   {
     icon: ShieldCheck,
-    title: "Estrutura voltada à rastreabilidade",
+    title: "Estrutura voltada a rastreabilidade",
     description:
-      "Conte com recursos voltados à conferência, histórico de alterações e rotinas mais auditáveis.",
+      "Conte com recursos voltados a conferencia, historico de alteracoes e rotinas mais auditaveis.",
   },
 ];
 
@@ -37,11 +37,10 @@ const Solution = () => {
         <div className="mx-auto mb-16 max-w-3xl text-center">
           <span className="text-sm font-bold uppercase tracking-widest text-primary">Como a plataforma ajuda</span>
           <h2 id="solution-title" className="mt-3 text-3xl font-extrabold leading-tight text-foreground md:text-4xl">
-            Mais controle da jornada, menos ruído operacional no RH.
+            Mais controle da jornada, menos retrabalho no RH.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            A proposta é simples: dar previsibilidade para a rotina de ponto e melhorar a qualidade das informações usadas no
-            fechamento e na gestão diária.
+            Organize os registros, acompanhe a jornada com mais clareza e tenha informacoes mais confiaveis para o fechamento e a gestao diaria.
           </p>
         </div>
 

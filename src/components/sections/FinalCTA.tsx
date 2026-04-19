@@ -9,10 +9,10 @@ const FinalCTA = () => {
       <div className="container relative z-10">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-3xl font-extrabold tracking-tight md:text-5xl">
-            Se a folha fecha no sufoco, vale ver como essa rotina pode ficar mais leve.
+            Se a folha fecha no sufoco, vale entender como essa rotina pode ficar mais leve.
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-primary-foreground/82 md:text-xl">
-            A próxima etapa é simples: entender o seu cenário, mostrar a plataforma e avaliar se ela faz sentido para a sua operação.
+            O proximo passo e simples: entender o seu cenario, apresentar a plataforma e avaliar se faz sentido avancar para um teste gratis de 14 dias.
           </p>
 
           <div className="mt-10 flex justify-center">
@@ -22,13 +22,13 @@ const FinalCTA = () => {
                 onClick={() => {
                   void trackCtaClick({
                     cta_id: "final_cta_solicitar_demonstracao",
-                    cta_label: "Solicitar demonstração final",
+                    cta_label: "Solicitar demonstracao final",
                     placement: "final_cta",
                     target: "#contato",
                   });
                 }}
               >
-                Solicitar demonstração
+                Solicitar demonstracao
                 <ArrowRight className="h-5 w-5" />
               </a>
             </Button>
@@ -37,15 +37,15 @@ const FinalCTA = () => {
           <div className="mt-8 flex flex-wrap justify-center gap-5 text-sm font-medium text-primary-foreground/80">
             <span className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-white" />
-              Conversa comercial objetiva
+              Demonstracao consultiva
             </span>
             <span className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-white" />
-              Teste grátis de 14 dias
+              Teste gratis de 14 dias
             </span>
             <span className="flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-white" />
-              Apoio inicial na implantação
+              Apoio inicial na implantacao
             </span>
           </div>
         </div>
