@@ -40,21 +40,41 @@ A home publica em `src/pages/HomePage.tsx` passou a compor a jornada principal c
 - `Hero`
 - `Problems`
 - `Solution`
-- `Benefits`
 - `TrustSection`
 - `Pricing`
-- `Security`
 - `FaqSection`
-- `FinalCTA`
 - `LeadForm`
 
 Quando o formulario conclui com sucesso, a pagina troca para `SuccessView`.
 
+### Componentes preservados fora do fluxo principal
+
+Os componentes abaixo permanecem no repositorio, mas nao sao renderizados pela home atual:
+
+- `Benefits`
+- `Security`
+- `FinalCTA`
+
+Eles foram mantidos como referencia editorial e opcao de rollback seguro, sem impacto no runtime da landing atual.
+
 ### Confianca e clareza comercial
 
 - a comunicacao da hero e das secoes centrais foi reposicionada para enfase em retrabalho, fechamento da folha, visibilidade da jornada e contexto operacional
-- a antiga abordagem de prova social foi substituida na home por `TrustSection`, que explicita segmentos atendidos e blocos de confianca sem depender de depoimentos genericos
+- a antiga abordagem de prova social foi substituida na home por `TrustSection`, agora consolidado como bloco unico de confianca, seguranca e criterios de avaliacao
 - o formulario e a tela de sucesso foram ajustados para orientar melhor o proximo passo comercial
+- a `SuccessView` agora permite retorno explicito para a landing por meio do CTA `Revisar a solucao`, com destino preferencial para `#solucao`
+
+### Navegacao por ancora
+
+O cabecalho da landing aponta para as seguintes secoes atualmente renderizadas:
+
+- `#problemas`
+- `#solucao`
+- `#precos`
+- `#faq`
+- `#contato`
+
+O CTA secundario da hero tambem aponta para `#solucao`, e os CTAs principais de captacao apontam para `#contato`.
 
 ### SEO da area publica
 
@@ -98,18 +118,21 @@ Quando o formulario conclui com sucesso, a pagina troca para `SuccessView`.
 - `src/components/sections/Hero.tsx`
 - `src/components/sections/Problems.tsx`
 - `src/components/sections/Solution.tsx`
-- `src/components/sections/Benefits.tsx`
 - `src/components/sections/TrustSection.tsx`
 - `src/components/sections/Pricing.tsx`
-- `src/components/sections/Security.tsx`
 - `src/components/sections/FaqSection.tsx`
-- `src/components/sections/FinalCTA.tsx`
 - `src/components/sections/LeadForm.tsx`
 - `src/components/sections/SuccessView.tsx`
 - `src/hooks/usePageMeta.ts`
 - `src/services/leadService.ts`
 - `src/services/analyticsService.ts`
 - `src/lib/validations.ts`
+
+Arquivos preservados fora do fluxo principal:
+
+- `src/components/sections/Benefits.tsx`
+- `src/components/sections/Security.tsx`
+- `src/components/sections/FinalCTA.tsx`
 
 ## Restricoes para futuras alteracoes
 

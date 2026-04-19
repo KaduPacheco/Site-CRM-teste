@@ -1,30 +1,42 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
-import { BarChart3, ClipboardList, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { BarChart3, ClipboardList, LayoutDashboard, ShieldCheck, Users, Workflow } from "lucide-react";
 
 const solutions = [
   {
     icon: ClipboardList,
-    title: "Registro e acompanhamento da jornada",
+    title: "Jornada centralizada",
     description:
-      "Centralize informacoes da rotina da equipe em uma unica plataforma, com menos dependencia de controles paralelos.",
+      "Consolide marcações, ajustes e horas extras em um só fluxo, sem depender de controles paralelos.",
   },
   {
     icon: BarChart3,
-    title: "Menos esforco no fechamento",
+    title: "Fechamento mais organizado",
     description:
-      "Organize horas extras, banco de horas, faltas e ajustes com mais clareza para o fechamento da folha.",
+      "Acompanhe banco de horas, faltas e inconsistências ao longo do mês, em vez de concentrar tudo no fim.",
   },
   {
     icon: LayoutDashboard,
-    title: "Visibilidade para RH e gestao",
+    title: "Visão operacional da equipe",
     description:
-      "De contexto operacional para quem precisa acompanhar a equipe e agir rapido em desvios da jornada.",
+      "Dê contexto prático para RH, DP e gestores acompanharem atrasos, ausências e desvios da jornada.",
   },
   {
     icon: ShieldCheck,
-    title: "Estrutura voltada a rastreabilidade",
+    title: "Histórico de ajustes",
     description:
-      "Conte com recursos voltados a conferencia, historico de alteracoes e rotinas mais auditaveis.",
+      "Registre alterações com contexto para consulta, conferência e acompanhamento quando necessário.",
+  },
+  {
+    icon: Users,
+    title: "Menos ruído entre áreas",
+    description:
+      "Padronize a leitura da jornada entre quem opera, aprova e fecha a folha.",
+  },
+  {
+    icon: Workflow,
+    title: "Decisão mais rápida",
+    description:
+      "Tenha informações mais claras para agir antes que erros de jornada virem custo.",
   },
 ];
 
@@ -37,10 +49,10 @@ const Solution = () => {
         <div className="mx-auto mb-16 max-w-3xl text-center">
           <span className="text-sm font-bold uppercase tracking-widest text-primary">Como a plataforma ajuda</span>
           <h2 id="solution-title" className="mt-3 text-3xl font-extrabold leading-tight text-foreground md:text-4xl">
-            Mais controle da jornada, menos retrabalho no RH.
+            Organize a jornada e ganhe clareza no fechamento.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Organize os registros, acompanhe a jornada com mais clareza e tenha informacoes mais confiaveis para o fechamento e a gestao diaria.
+            A plataforma reúne rotina, ajustes e acompanhamento operacional em um fluxo mais simples para RH, DP e liderança.
           </p>
         </div>
 

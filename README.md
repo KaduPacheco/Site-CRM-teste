@@ -44,9 +44,10 @@ A landing publica em `/` passou por uma refatoracao focada em comunicacao comerc
 O que mudou na area publica:
 
 - reposicionamento da mensagem comercial da home para enfatizar clareza operacional, proposta de valor e proximos passos do contato
-- reorganizacao das secoes da landing com foco em problemas, solucao, beneficios, confianca, precos, seguranca, FAQ, CTA final e formulario
+- reorganizacao das secoes da landing com foco em problemas, solucao, confianca, precos, FAQ e formulario
 - inclusao das paginas publicas de `Politica de Privacidade` e `Termos de Uso`, ambas roteadas em `src/App.tsx`
 - reforco de SEO da area publica com metadados por pagina via `src/hooks/usePageMeta.ts` e ajustes de metadados base em `index.html`
+- simplificacao do fluxo de sucesso para permitir retorno direto a secao `#solucao` por meio do CTA `Revisar a solucao`
 
 O que foi preservado:
 
@@ -54,6 +55,7 @@ O que foi preservado:
 - a captacao de leads da landing por `src/services/leadService.ts`, incluindo envio principal ao Supabase e webhook opcional do n8n
 - o tracking existente da landing em `src/services/analyticsService.ts`, sem remocao dos tipos de evento ja usados
 - o comportamento funcional do CRM, que continua isolado por `AuthProvider`, `ProtectedRoute` e `CrmLayout`
+- os componentes `Benefits`, `Security` e `FinalCTA`, mantidos fora do fluxo principal como referencia editorial e opcao de rollback seguro
 
 Observacao importante:
 
@@ -86,6 +88,18 @@ O frontend do CRM foi reorganizado em `src/features/crm/`:
 
 - rota: `/`
 - papel: captacao publica de leads e tracking da landing
+- secoes atualmente renderizadas em `HomePage`:
+  - `Hero`
+  - `Problems`
+  - `Solution`
+  - `TrustSection`
+  - `Pricing`
+  - `FaqSection`
+  - `LeadForm`
+- comportamento apos envio:
+  - `LeadForm` aciona `SuccessView`
+  - o CTA `Revisar a solucao` fecha a tela de sucesso, reexibe a landing e tenta rolar suavemente para `#solucao`
+  - se a ancora nao estiver disponivel, o fallback e rolar para o topo
 - servicos principais:
   - `src/services/leadService.ts`
   - `src/services/analyticsService.ts`
@@ -211,7 +225,7 @@ npm install
 npm run dev
 ```
 
-Servidor local padrao: `http://localhost:8080`
+Servidor local padrao do Vite: `http://localhost:5173`
 
 ## Validacao local
 
@@ -219,6 +233,13 @@ Servidor local padrao: `http://localhost:8080`
 npm run test
 npm run build
 ```
+
+## Build e deploy
+
+- build de producao: `npm run build`
+- preview local de build: `npm run preview`
+- configuracao da Vercel: `vercel.json` com rewrite unico para `/index.html`, compativel com o uso de React Router no frontend
+- este repositorio nao versiona `.vercel/project.json`, entao o vinculo exato com o projeto da Vercel precisa ser confirmado manualmente no ambiente
 
 ## Integracoes
 
@@ -234,6 +255,3 @@ npm run build
 - Se existir, deve apontar para uma automacao isolada do ambiente de testes.
 - Falhas no webhook nao devem impedir a gravacao principal no banco.
 
-## Observacao operacional
-
-Nao existe arquivo `.vercel/project.json` versionado neste repositorio. O vinculo do deploy deve ser conferido manualmente na Vercel para garantir que o projeto conectado tambem seja o ambiente de testes.

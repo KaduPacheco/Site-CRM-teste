@@ -5,7 +5,7 @@ import { Check, CircleHelp, Clock, Zap } from "lucide-react";
 
 const features = [
   "Registro de ponto digital",
-  "Relatorios de jornada e fechamento",
+  "Relatórios de jornada e fechamento",
   "Controle de horas extras e banco de horas",
   "Acesso por celular ou computador",
   "Suporte humano para os primeiros passos",
@@ -20,10 +20,10 @@ const Pricing = () => {
         <div className="mx-auto mb-14 max-w-3xl text-center">
           <span className="text-sm font-semibold uppercase tracking-wider text-primary">Plano de entrada</span>
           <h2 id="pricing-title" className="mt-2 text-3xl font-extrabold text-foreground md:text-4xl">
-            Um ponto de partida claro para empresas que estao digitalizando o controle de jornada.
+            Um ponto de partida claro para empresas que estão digitalizando o controle de jornada.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            Preco de entrada acessivel, demonstracao consultiva e teste de 14 dias para validar aderencia antes da contratacao.
+            Preço de entrada acessível, demonstração consultiva e teste de 14 dias para validar aderência antes da contratação.
           </p>
         </div>
 
@@ -31,7 +31,7 @@ const Pricing = () => {
           <div className="rounded-[2rem] border border-border bg-card p-8 shadow-sm md:p-10">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary">
               <Zap className="h-4 w-4" />
-              Ideal para empresas iniciando a digitalizacao do ponto
+              Ideal para empresas iniciando a digitalização do ponto
             </div>
 
             <h3 className="text-2xl font-bold text-foreground md:text-3xl">Plano Completo</h3>
@@ -41,11 +41,11 @@ const Pricing = () => {
 
             <div className="mt-8 flex flex-wrap items-end gap-3">
               <span className="text-5xl font-extrabold text-foreground">R$ 59,90</span>
-              <span className="pb-1 text-lg text-muted-foreground">/mes para ate 5 funcionarios</span>
+              <span className="pb-1 text-lg text-muted-foreground">/mês para até 5 funcionários</span>
             </div>
 
             <p className="mt-3 inline-flex rounded-xl bg-muted px-4 py-2 text-sm font-medium text-foreground">
-              + R$ 7,00 por funcionario adicional
+              + R$ 7,00 por funcionário adicional
             </p>
 
             <ul className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -66,14 +66,14 @@ const Pricing = () => {
             <div className="absolute right-0 top-0">
               <div className="flex items-center gap-1.5 rounded-bl-xl bg-secondary px-4 py-2 text-xs font-bold uppercase tracking-wider text-secondary-foreground">
                 <Clock className="h-3.5 w-3.5" />
-                Teste gratis de 14 dias
+                Teste grátis de 14 dias
               </div>
             </div>
 
             <div className="mb-8 pt-6">
-              <h3 className="text-2xl font-bold">Por que comecar por essa faixa</h3>
+              <h3 className="text-2xl font-bold">Por que começar por este plano</h3>
               <p className="mt-3 text-primary-foreground/82">
-                Um ponto de entrada claro para validar a operacao sem adicionar complexidade logo no inicio.
+                Um ponto de entrada claro para validar a operação sem adicionar complexidade logo no início.
               </p>
             </div>
 
@@ -81,25 +81,25 @@ const Pricing = () => {
               <div className="flex items-start gap-3">
                 <CircleHelp className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
                 <p className="text-sm leading-6 text-primary-foreground/88">
-                  Valor inicial acessivel para validar a operacao.
+                  Valor inicial acessível para validar a operação.
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <CircleHelp className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
                 <p className="text-sm leading-6 text-primary-foreground/88">
-                  A cobranca acompanha o crescimento da equipe.
+                  A cobrança acompanha o crescimento da equipe.
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <CircleHelp className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
                 <p className="text-sm leading-6 text-primary-foreground/88">
-                  A demonstracao ajuda a avaliar o cenario antes do teste.
+                  A demonstração ajuda a avaliar o cenário antes do teste.
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <CircleHelp className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
                 <p className="text-sm leading-6 text-primary-foreground/88">
-                  O teste de 14 dias permite validar a rotina com mais seguranca.
+                  O teste de 14 dias permite validar a rotina com mais segurança.
                 </p>
               </div>
             </div>
@@ -120,7 +120,7 @@ const Pricing = () => {
                   });
                 }}
               >
-                Solicitar demonstracao
+                Solicitar demonstração
               </a>
             </Button>
           </div>

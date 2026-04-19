@@ -13,8 +13,10 @@ Sempre que houver mudanças no banco ou no sistema de autenticação, realize es
 - [ ] Acessar a Home (`/`).
 - [ ] Scroll até o formulário de contato.
 - [ ] Preencher com dados de teste.
-- [ ] Clicar em "Quero testar agora".
+- [ ] Clicar em "Solicitar demonstração".
 - [ ] Verificar se o Toast de sucesso aparece.
+- [ ] Verificar se a tela de sucesso é exibida.
+- [ ] Clicar em "Revisar a solução" e confirmar retorno da landing para a secao `#solucao`.
 - [ ] Verificar no Dashboard do Supabase se o lead foi criado com `origem = 'landing_page'`.
 
 ## 🚨 Sinais de Alerta

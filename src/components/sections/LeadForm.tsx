@@ -17,10 +17,9 @@ const FORM_ID = "landing_lead_form";
 const SECTION_ID = "contato";
 
 const trustPoints = [
-  "Retorno comercial em ate 1 dia util",
-  "Demonstracao consultiva",
-  "Teste gratis de 14 dias",
-  "Apoio para avaliar a aderencia a rotina da empresa",
+  "Retorno comercial em até 1 dia útil",
+  "Demonstração orientada ao seu cenário",
+  "Teste de 14 dias para avaliar aderência",
 ] as const;
 
 const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
@@ -105,7 +104,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         elapsed_ms: getElapsedMs(),
       });
 
-      toast({ title: "Sua solicitacao foi recebida." });
+      toast({ title: "Sua solicitação foi recebida." });
 
       if (onSuccess) {
         onSuccess();
@@ -143,7 +142,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       toast({
         title: "Cadastro realizado!",
-        description: "Em breve entraremos em contato com voce.",
+        description: "Em breve entraremos em contato com você.",
       });
     } catch (error) {
       void trackLeadFormSubmitError({
@@ -156,7 +155,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
       toast({
         title: "Erro ao enviar",
-        description: "Nao foi possivel enviar seus dados. Tente novamente.",
+        description: "Não foi possível enviar seus dados. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -170,7 +169,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         <div className="container text-center text-primary-foreground">
           <CheckCircle className="mx-auto mb-6 h-16 w-16 text-secondary" />
           <h2 className="mb-4 text-3xl font-extrabold">Obrigado pelo interesse.</h2>
-          <p className="text-lg opacity-90">Nossa equipe deve retornar em ate 1 dia util.</p>
+          <p className="text-lg opacity-90">Nossa equipe deve retornar em até 1 dia útil.</p>
         </div>
       </section>
     );
@@ -181,12 +180,11 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       <div className="container" ref={ref}>
         <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div className={`text-primary-foreground ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/70">Demonstracao e teste</span>
             <h2 id="lead-form-title" className="mt-4 text-3xl font-extrabold md:text-4xl">
-              Solicite uma demonstracao e veja se a plataforma faz sentido para a sua operacao.
+              Solicite uma demonstração e avalie a plataforma no seu cenário.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-8 text-primary-foreground/84">
-              Preencha seus dados e nossa equipe comercial retorna para entender o cenario da empresa, apresentar a solucao e orientar o melhor proximo passo.
+              Preencha os dados para nosso time entender a sua operação e conduzir a próxima etapa comercial com objetividade.
             </p>
 
             <div className="mt-8 space-y-3">
@@ -217,9 +215,9 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             />
 
             <div className="mb-6">
-              <h3 className="text-2xl font-bold text-foreground">Solicitar demonstracao</h3>
+              <h3 className="text-2xl font-bold text-foreground">Solicitar demonstração</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Campos essenciais para nosso time preparar um contato comercial mais util para a sua realidade.
+                Deixe seus dados para receber um contato comercial alinhado ao seu contexto.
               </p>
             </div>
 
@@ -317,7 +315,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
               <div>
                 <label htmlFor="employees" className="mb-2 block text-sm font-medium text-foreground">
-                  Quantidade de funcionarios
+                  Quantidade de funcionários
                 </label>
                 <Input
                   id="employees"
@@ -341,19 +339,19 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
             <Button variant="cta" type="submit" className="mt-6 h-14 w-full rounded-xl text-lg" disabled={isSubmitting || submitted}>
               <Send className={`mr-2 h-5 w-5 ${isSubmitting ? "animate-pulse" : ""}`} />
-              {isSubmitting ? "Enviando..." : "Solicitar demonstracao"}
+              {isSubmitting ? "Enviando..." : "Solicitar demonstração"}
             </Button>
 
             <p className="mt-4 text-center text-xs leading-6 text-muted-foreground">
-              Ao enviar, voce concorda com nossos{" "}
+              Ao enviar, você concorda com nossos{" "}
               <a href="/termos-de-uso" className="font-medium text-primary underline-offset-4 hover:underline">
                 Termos de Uso
               </a>{" "}
               e com a{" "}
               <a href="/politica-de-privacidade" className="font-medium text-primary underline-offset-4 hover:underline">
-                Politica de Privacidade
+                Política de Privacidade
               </a>
-              . Seus dados serao usados apenas para contato comercial e apresentacao da plataforma.
+              . Seus dados serão usados apenas para contato comercial e apresentação da plataforma.
             </p>
           </form>
         </div>

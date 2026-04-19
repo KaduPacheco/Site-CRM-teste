@@ -1,24 +1,25 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { DatabaseBackup, FileSignature, Lock } from "lucide-react";
 
+// Preservado fora do fluxo principal da landing para referência editorial e rollback seguro.
 const pillars = [
   {
     icon: FileSignature,
-    title: "Rotinas voltadas a conformidade operacional",
+    title: "Rotinas voltadas à conformidade operacional",
     description:
-      "A plataforma foi desenhada para apoiar processos de controle de jornada com mais organizacao, conferencia e responsabilidade operacional.",
+      "A plataforma foi desenhada para apoiar processos de controle de jornada com mais organização, conferência e responsabilidade operacional.",
   },
   {
     icon: Lock,
-    title: "Protecao de dados e acesso",
+    title: "Proteção de dados e acesso",
     description:
-      "A operacao em nuvem ajuda a manter disponibilidade e controle sobre informacoes sensiveis usadas no contexto comercial e operacional.",
+      "A operação em nuvem ajuda a manter disponibilidade e controle sobre informações sensíveis usadas no contexto comercial e operacional.",
   },
   {
     icon: DatabaseBackup,
-    title: "Historico e rastreabilidade",
+    title: "Histórico e rastreabilidade",
     description:
-      "Registros, ajustes e dados relevantes podem ser acompanhados com mais contexto, o que fortalece rotinas de auditoria e conferencia.",
+      "Registros, ajustes e dados relevantes podem ser acompanhados com mais contexto, o que fortalece rotinas de auditoria e conferência.",
   },
 ];
 
@@ -29,12 +30,12 @@ const Security = () => {
     <section className="bg-muted/30 py-24" aria-labelledby="security-title">
       <div className="container" ref={ref}>
         <div className="mx-auto mb-16 max-w-3xl text-center">
-          <span className="text-sm font-bold uppercase tracking-widest text-primary">Seguranca e rastreabilidade</span>
+          <span className="text-sm font-bold uppercase tracking-widest text-primary">Segurança e rastreabilidade</span>
           <h2 id="security-title" className="mt-3 text-3xl font-extrabold leading-tight text-foreground md:text-4xl">
-            Mais confianca para operar um processo sensivel todos os meses.
+            Mais confiança para operar um processo sensível todos os meses.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            A combinacao de seguranca, clareza de processo e capacidade de conferencia ajuda a sustentar a rotina com mais confianca.
+            A combinação de segurança, clareza de processo e capacidade de conferência ajuda a sustentar a rotina com mais confiança.
           </p>
         </div>
 

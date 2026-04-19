@@ -1,26 +1,27 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { BarChart2, Clock3, ScanSearch, Users } from "lucide-react";
 
+// Preservado fora do fluxo principal da landing para referência editorial e rollback seguro.
 const benefits = [
   {
     icon: Clock3,
     title: "Mais agilidade no fechamento",
-    description: "Reduza o tempo gasto com conferencias repetitivas e concentre o time no que realmente precisa de analise.",
+    description: "Reduza o tempo gasto com conferências repetitivas e concentre o time no que realmente precisa de análise.",
   },
   {
     icon: ScanSearch,
-    title: "Menos retrabalho na conferencia",
-    description: "Organize a rotina de ajustes e validacoes com mais contexto, em vez de corrigir tudo na reta final.",
+    title: "Menos retrabalho na conferência",
+    description: "Organize a rotina de ajustes e validações com mais contexto, em vez de corrigir tudo na reta final.",
   },
   {
     icon: BarChart2,
     title: "Visibilidade em tempo real",
-    description: "Acompanhe indicadores operacionais da jornada e identifique desvios com mais rapidez ao longo do mes.",
+    description: "Acompanhe indicadores operacionais da jornada e identifique desvios com mais rapidez ao longo do mês.",
   },
   {
     icon: Users,
-    title: "Mais clareza entre RH e liderancas",
-    description: "Unifique a leitura da jornada para reduzir ruido entre quem opera, aprova e fecha as informacoes.",
+    title: "Mais clareza entre RH e lideranças",
+    description: "Unifique a leitura da jornada para reduzir ruído entre quem opera, aprova e fecha as informações.",
   },
 ];
 
@@ -33,10 +34,10 @@ const Benefits = () => {
         <div className="mx-auto mb-16 max-w-3xl text-center">
           <span className="text-sm font-bold uppercase tracking-widest text-secondary">Resultados esperados</span>
           <h2 id="benefits-title" className="mt-3 text-3xl font-extrabold leading-tight text-foreground md:text-4xl">
-            Mais previsibilidade na rotina, menos esforco no fechamento.
+            Mais previsibilidade na rotina, menos esforço no fechamento.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            A plataforma centraliza informacoes da jornada para dar mais controle operacional, rastreabilidade e seguranca nas decisoes do dia a dia.
+            A plataforma centraliza informações da jornada para dar mais controle operacional, rastreabilidade e segurança nas decisões do dia a dia.
           </p>
         </div>
 

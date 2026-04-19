@@ -4,9 +4,9 @@ import { trackCtaClick } from "@/services/analyticsService";
 import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 
 const primaryProofs = [
-  "Demonstracao consultiva",
-  "Teste gratis de 14 dias se fizer sentido",
-  "Implantacao assistida",
+  "Demonstração consultiva",
+  "Teste de 14 dias após avaliação inicial",
+  "Implantação assistida",
 ];
 
 const Hero = () => {
@@ -20,7 +20,7 @@ const Hero = () => {
           <div className="text-primary-foreground">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-foreground/15 bg-primary-foreground/10 px-4 py-2 text-sm font-medium">
               <ShieldCheck className="h-4 w-4 text-secondary" />
-              Controle de jornada com mais clareza para pequenas e medias empresas
+              Controle de jornada com mais clareza para pequenas e médias empresas
             </div>
 
             <h1 className="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight md:text-5xl lg:text-6xl">
@@ -28,25 +28,25 @@ const Hero = () => {
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-8 text-primary-foreground/88 md:text-xl">
-              Um software de ponto eletronico para empresas que precisam reduzir erros de jornada, acompanhar horas extras com mais previsibilidade e dar visibilidade em tempo real para RH, DP e gestores.
+              Um software de ponto eletrônico para empresas que precisam reduzir erros de jornada, acompanhar horas extras com mais previsibilidade e dar visibilidade em tempo real para RH, DP e gestores.
             </p>
 
             <ul className="mt-8 grid gap-3 text-sm font-medium text-primary-foreground/90 sm:grid-cols-2">
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
-                Menos conferencia manual no fechamento da folha
+                Menos conferência manual no fechamento da folha
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
-                Historico auditavel para ajustes e conferencias
+                Histórico auditável para ajustes e conferências
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
-                Visao operacional de atrasos, faltas e banco de horas
+                Visão operacional de atrasos, faltas e banco de horas
               </li>
               <li className="flex items-start gap-3">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-secondary" />
-                Mais seguranca para rotinas sensiveis do DP
+                Mais segurança para rotinas sensíveis do DP
               </li>
             </ul>
 
@@ -63,7 +63,7 @@ const Hero = () => {
                     });
                   }}
                 >
-                  Solicitar demonstracao
+                  Solicitar demonstração
                   <ArrowRight className="h-5 w-5" />
                 </a>
               </Button>
@@ -104,15 +104,15 @@ const Hero = () => {
             <div className="relative overflow-hidden rounded-[1.75rem] border border-border/40 bg-card/95 p-3 shadow-2xl">
               <img
                 src={heroMockup}
-                alt="Painel da plataforma de controle de ponto com visao operacional da jornada"
+                alt="Painel da plataforma de controle de ponto com visão operacional da jornada"
                 width={1280}
                 height={800}
                 className="w-full rounded-[1.2rem] border border-border/50 bg-card"
               />
               <div className="absolute bottom-7 left-7 right-7 rounded-2xl border border-white/10 bg-slate-950/70 p-4 backdrop-blur">
-                <p className="text-sm font-semibold text-white">Mais previsibilidade para a rotina de RH e gestao</p>
+                <p className="text-sm font-semibold text-white">Mais previsibilidade para a rotina de RH e gestão</p>
                 <p className="mt-2 text-sm leading-6 text-slate-200">
-                  Acompanhe jornadas, banco de horas e pendencias com uma visao unica, sem depender de planilhas dispersas.
+                  Acompanhe jornadas, banco de horas e pendências com uma visão única, sem depender de planilhas dispersas.
                 </p>
               </div>
             </div>

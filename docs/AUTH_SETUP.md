@@ -14,7 +14,7 @@ Use este procedimento somente no projeto Supabase do ambiente de testes ligado a
 
 ## Acesso local
 
-- URL local: `http://localhost:8080/crm/login`
+- URL local padrao: `http://localhost:5173/crm/login`
 - Use as credenciais criadas no projeto de testes.
 
 ## Regras de seguranca
