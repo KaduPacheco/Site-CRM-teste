@@ -88,18 +88,18 @@ O frontend do CRM foi reorganizado em `src/features/crm/`:
 
 - rota: `/`
 - papel: captacao publica de leads e tracking da landing
-- secoes atualmente renderizadas em `HomePage`:
-  - `Hero`
-  - `Problems`
-  - `Solution`
-  - `TrustSection`
-  - `Pricing`
-  - `FaqSection`
-  - `LeadForm`
+- estrutura real de `src/pages/HomePage.tsx`:
+  - `Header` sempre renderizado
+  - `main` renderiza condicionalmente `SuccessView` ou a sequencia `Hero -> Problems -> Solution -> TrustSection -> Pricing -> FaqSection -> LeadForm`
+  - `Footer` sempre renderizado
 - comportamento apos envio:
-  - `LeadForm` aciona `SuccessView`
+  - `LeadForm` chama `onSuccess`, e `HomePage` troca o estado local para exibir `SuccessView`
+  - enquanto `SuccessView` estiver visivel, o `Header` continua montado, mas com o CTA principal oculto via `hideCTA`
   - o CTA `Revisar a solucao` fecha a tela de sucesso, reexibe a landing e tenta rolar suavemente para `#solucao`
   - se a ancora nao estiver disponivel, o fallback e rolar para o topo
+- navegacao por ancora:
+  - em `/`, o `Header` usa hashes locais `#problemas`, `#solucao`, `#precos`, `#faq` e `#contato`
+  - fora da home, o `Header` prefixa esses destinos com `/`, preservando o retorno para a landing a partir das paginas legais
 - servicos principais:
   - `src/services/leadService.ts`
   - `src/services/analyticsService.ts`

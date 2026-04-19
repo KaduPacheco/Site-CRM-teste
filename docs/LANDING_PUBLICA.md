@@ -35,17 +35,15 @@ Fonte principal de roteamento: `src/App.tsx`
 
 ### Estrutura da home
 
-A home publica em `src/pages/HomePage.tsx` passou a compor a jornada principal com as seguintes secoes:
+A home publica em `src/pages/HomePage.tsx` hoje funciona assim:
 
-- `Hero`
-- `Problems`
-- `Solution`
-- `TrustSection`
-- `Pricing`
-- `FaqSection`
-- `LeadForm`
+- `Header` sempre renderizado no topo
+- `main` com renderizacao condicional:
+  - fluxo padrao: `Hero`, `Problems`, `Solution`, `TrustSection`, `Pricing`, `FaqSection` e `LeadForm`
+  - fluxo de sucesso: `SuccessView`
+- `Footer` sempre renderizado no fechamento da pagina
 
-Quando o formulario conclui com sucesso, a pagina troca para `SuccessView`.
+Quando o formulario conclui com sucesso, `LeadForm` dispara `onSuccess`, `HomePage` alterna o estado local `isSubmitted` e a pagina troca para `SuccessView`.
 
 ### Componentes preservados fora do fluxo principal
 
@@ -74,7 +72,16 @@ O cabecalho da landing aponta para as seguintes secoes atualmente renderizadas:
 - `#faq`
 - `#contato`
 
+Na rota `/`, o `Header` usa essas ancoras locais. Fora da home, ele resolve os mesmos destinos como `/#problemas`, `/#solucao`, `/#precos`, `/#faq` e `/#contato`, mantendo compatibilidade com as paginas legais.
+
 O CTA secundario da hero tambem aponta para `#solucao`, e os CTAs principais de captacao apontam para `#contato`.
+
+### Fluxo de sucesso e retorno
+
+- `LeadForm` envia os dados e, quando o callback `onSuccess` e recebido, a home troca o conteudo principal para `SuccessView`
+- `SuccessView` preserva um fallback declarativo com `href="/#solucao"`
+- quando `onReviewSolution` esta disponivel, o clique em `Revisar a solucao` previne a navegacao padrao, fecha a tela de sucesso, reexibe a landing e tenta rolar suavemente para `#solucao`
+- se a ancora nao existir no DOM, o fallback do fluxo e rolar suavemente para o topo
 
 ### SEO da area publica
 

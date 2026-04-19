@@ -11,12 +11,14 @@ Este checklist deve ser consultado antes de cada nova etapa de desenvolvimento d
 ## ✅ Teste de Sanidade (Smoke Test)
 Sempre que houver mudanças no banco ou no sistema de autenticação, realize este teste manual:
 - [ ] Acessar a Home (`/`).
+- [ ] Confirmar que o `Header` navega para `#problemas`, `#solucao`, `#precos`, `#faq` e `#contato`.
 - [ ] Scroll até o formulário de contato.
 - [ ] Preencher com dados de teste.
 - [ ] Clicar em "Solicitar demonstração".
 - [ ] Verificar se o Toast de sucesso aparece.
 - [ ] Verificar se a tela de sucesso é exibida.
-- [ ] Clicar em "Revisar a solução" e confirmar retorno da landing para a secao `#solucao`.
+- [ ] Confirmar que o `Header` permanece visível na tela de sucesso, sem o CTA principal.
+- [ ] Clicar em "Revisar a solução" e confirmar retorno da landing para a secao `#solucao`, com fallback para o topo se a ancora nao estiver disponível.
 - [ ] Verificar no Dashboard do Supabase se o lead foi criado com `origem = 'landing_page'`.
 
 ## 🚨 Sinais de Alerta
