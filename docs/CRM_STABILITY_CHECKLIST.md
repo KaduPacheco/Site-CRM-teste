@@ -21,6 +21,12 @@ Sempre que houver mudanças no banco ou no sistema de autenticação, realize es
 - [ ] Clicar em "Revisar a solução" e confirmar retorno da landing para a secao `#solucao`, com fallback para o topo se a ancora nao estiver disponível.
 - [ ] Verificar no Dashboard do Supabase se o lead foi criado com `origem = 'landing_page'`.
 
+## 🌐 Fluxo de Publicacao
+
+- Branches de trabalho devem ser validadas primeiro por `Preview Deployment` na Vercel.
+- Publicacao em producao acontece apenas apos merge ou push na branch `main`.
+- Nao tratar preview de branch como publicacao definitiva.
+
 ## 🚨 Sinais de Alerta
 - Erro `401 Unauthorized` ou `403 Forbidden` no console ao enviar o formulário: **RLS bloqueando o role anon.**
 - Erro `400 Bad Request` com mensagem de "property X is missing": **Campo obrigatório adicionado ao banco sem default/not-null.**

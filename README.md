@@ -239,7 +239,17 @@ npm run build
 - build de producao: `npm run build`
 - preview local de build: `npm run preview`
 - configuracao da Vercel: `vercel.json` com rewrite unico para `/index.html`, compativel com o uso de React Router no frontend
-- este repositorio nao versiona `.vercel/project.json`, entao o vinculo exato com o projeto da Vercel precisa ser confirmado manualmente no ambiente
+
+## Fluxo de publicacao no Vercel
+
+- o projeto possui integracao ativa com a Vercel
+- pushes em branches de trabalho geram `Preview Deployments`
+- a branch `main` e a branch de `Production` na Vercel
+- portanto, alteracoes so chegam ao ambiente de producao depois de merge ou push na `main`
+- fluxo recomendado:
+  - desenvolver e validar a mudanca na branch de trabalho
+  - revisar o preview deployment correspondente
+  - publicar em producao apenas apos merge da branch validada na `main`
 
 ## Integracoes
 
