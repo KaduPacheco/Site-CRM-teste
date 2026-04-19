@@ -1,6 +1,7 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { DatabaseBackup, FileSignature, Lock } from "lucide-react";
 
+// Preservado fora do fluxo principal da landing para referência editorial e rollback seguro.
 const pillars = [
   {
     icon: FileSignature,
@@ -34,7 +35,7 @@ const Security = () => {
             Mais confiança para operar um processo sensível todos os meses.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Em controle de jornada, percepção de qualidade também vem de segurança, clareza de processo e capacidade de conferência.
+            A combinação de segurança, clareza de processo e capacidade de conferência ajuda a sustentar a rotina com mais confiança.
           </p>
         </div>
 

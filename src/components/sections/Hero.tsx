@@ -4,9 +4,9 @@ import { trackCtaClick } from "@/services/analyticsService";
 import { ArrowRight, CheckCircle2, ShieldCheck } from "lucide-react";
 
 const primaryProofs = [
-  "Teste grátis de 14 dias",
+  "Demonstração consultiva",
+  "Teste de 14 dias após avaliação inicial",
   "Implantação assistida",
-  "Fluxo pensado para RH, DP e gestores",
 ];
 
 const Hero = () => {
@@ -28,8 +28,7 @@ const Hero = () => {
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-8 text-primary-foreground/88 md:text-xl">
-              Um software de ponto eletrônico para empresas que precisam reduzir erros de jornada, acompanhar horas extras com
-              mais previsibilidade e dar visibilidade em tempo real para RH, DP e gestores.
+              Um software de ponto eletrônico para empresas que precisam reduzir erros de jornada, acompanhar horas extras com mais previsibilidade e dar visibilidade em tempo real para RH, DP e gestores.
             </p>
 
             <ul className="mt-8 grid gap-3 text-sm font-medium text-primary-foreground/90 sm:grid-cols-2">
@@ -58,7 +57,7 @@ const Hero = () => {
                   onClick={() => {
                     void trackCtaClick({
                       cta_id: "hero_cta_solicitar_demonstracao",
-                      cta_label: "Solicitar demonstração",
+                      cta_label: "Solicitar demonstracao",
                       placement: "hero",
                       target: "#contato",
                     });
@@ -76,17 +75,17 @@ const Hero = () => {
                 asChild
               >
                 <a
-                  href="#contato"
+                  href="#solucao"
                   onClick={() => {
                     void trackCtaClick({
                       cta_id: "hero_cta_teste_gratis",
-                      cta_label: "Quero testar grátis",
+                      cta_label: "Entender como funciona",
                       placement: "hero",
-                      target: "#contato",
+                      target: "#solucao",
                     });
                   }}
                 >
-                  Quero testar grátis
+                  Entender como funciona
                 </a>
               </Button>
             </div>

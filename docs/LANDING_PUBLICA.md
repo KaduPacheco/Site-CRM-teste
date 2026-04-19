@@ -35,26 +35,53 @@ Fonte principal de roteamento: `src/App.tsx`
 
 ### Estrutura da home
 
-A home publica em `src/pages/HomePage.tsx` passou a compor a jornada principal com as seguintes secoes:
+A home publica em `src/pages/HomePage.tsx` hoje funciona assim:
 
-- `Hero`
-- `Problems`
-- `Solution`
+- `Header` sempre renderizado no topo
+- `main` com renderizacao condicional:
+  - fluxo padrao: `Hero`, `Problems`, `Solution`, `TrustSection`, `Pricing`, `FaqSection` e `LeadForm`
+  - fluxo de sucesso: `SuccessView`
+- `Footer` sempre renderizado no fechamento da pagina
+
+Quando o formulario conclui com sucesso, `LeadForm` dispara `onSuccess`, `HomePage` alterna o estado local `isSubmitted` e a pagina troca para `SuccessView`.
+
+### Componentes preservados fora do fluxo principal
+
+Os componentes abaixo permanecem no repositorio, mas nao sao renderizados pela home atual:
+
 - `Benefits`
-- `TrustSection`
-- `Pricing`
 - `Security`
-- `FaqSection`
 - `FinalCTA`
-- `LeadForm`
 
-Quando o formulario conclui com sucesso, a pagina troca para `SuccessView`.
+Eles foram mantidos como referencia editorial e opcao de rollback seguro, sem impacto no runtime da landing atual.
 
 ### Confianca e clareza comercial
 
 - a comunicacao da hero e das secoes centrais foi reposicionada para enfase em retrabalho, fechamento da folha, visibilidade da jornada e contexto operacional
-- a antiga abordagem de prova social foi substituida na home por `TrustSection`, que explicita segmentos atendidos e blocos de confianca sem depender de depoimentos genericos
+- a antiga abordagem de prova social foi substituida na home por `TrustSection`, agora consolidado como bloco unico de confianca, seguranca e criterios de avaliacao
 - o formulario e a tela de sucesso foram ajustados para orientar melhor o proximo passo comercial
+- a `SuccessView` agora permite retorno explicito para a landing por meio do CTA `Revisar a solucao`, com destino preferencial para `#solucao`
+
+### Navegacao por ancora
+
+O cabecalho da landing aponta para as seguintes secoes atualmente renderizadas:
+
+- `#problemas`
+- `#solucao`
+- `#precos`
+- `#faq`
+- `#contato`
+
+Na rota `/`, o `Header` usa essas ancoras locais. Fora da home, ele resolve os mesmos destinos como `/#problemas`, `/#solucao`, `/#precos`, `/#faq` e `/#contato`, mantendo compatibilidade com as paginas legais.
+
+O CTA secundario da hero tambem aponta para `#solucao`, e os CTAs principais de captacao apontam para `#contato`.
+
+### Fluxo de sucesso e retorno
+
+- `LeadForm` envia os dados e, quando o callback `onSuccess` e recebido, a home troca o conteudo principal para `SuccessView`
+- `SuccessView` preserva um fallback declarativo com `href="/#solucao"`
+- quando `onReviewSolution` esta disponivel, o clique em `Revisar a solucao` previne a navegacao padrao, fecha a tela de sucesso, reexibe a landing e tenta rolar suavemente para `#solucao`
+- se a ancora nao existir no DOM, o fallback do fluxo e rolar suavemente para o topo
 
 ### SEO da area publica
 
@@ -98,18 +125,21 @@ Quando o formulario conclui com sucesso, a pagina troca para `SuccessView`.
 - `src/components/sections/Hero.tsx`
 - `src/components/sections/Problems.tsx`
 - `src/components/sections/Solution.tsx`
-- `src/components/sections/Benefits.tsx`
 - `src/components/sections/TrustSection.tsx`
 - `src/components/sections/Pricing.tsx`
-- `src/components/sections/Security.tsx`
 - `src/components/sections/FaqSection.tsx`
-- `src/components/sections/FinalCTA.tsx`
 - `src/components/sections/LeadForm.tsx`
 - `src/components/sections/SuccessView.tsx`
 - `src/hooks/usePageMeta.ts`
 - `src/services/leadService.ts`
 - `src/services/analyticsService.ts`
 - `src/lib/validations.ts`
+
+Arquivos preservados fora do fluxo principal:
+
+- `src/components/sections/Benefits.tsx`
+- `src/components/sections/Security.tsx`
+- `src/components/sections/FinalCTA.tsx`
 
 ## Restricoes para futuras alteracoes
 

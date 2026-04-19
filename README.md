@@ -44,9 +44,10 @@ A landing publica em `/` passou por uma refatoracao focada em comunicacao comerc
 O que mudou na area publica:
 
 - reposicionamento da mensagem comercial da home para enfatizar clareza operacional, proposta de valor e proximos passos do contato
-- reorganizacao das secoes da landing com foco em problemas, solucao, beneficios, confianca, precos, seguranca, FAQ, CTA final e formulario
+- reorganizacao das secoes da landing com foco em problemas, solucao, confianca, precos, FAQ e formulario
 - inclusao das paginas publicas de `Politica de Privacidade` e `Termos de Uso`, ambas roteadas em `src/App.tsx`
 - reforco de SEO da area publica com metadados por pagina via `src/hooks/usePageMeta.ts` e ajustes de metadados base em `index.html`
+- simplificacao do fluxo de sucesso para permitir retorno direto a secao `#solucao` por meio do CTA `Revisar a solucao`
 
 O que foi preservado:
 
@@ -54,6 +55,7 @@ O que foi preservado:
 - a captacao de leads da landing por `src/services/leadService.ts`, incluindo envio principal ao Supabase e webhook opcional do n8n
 - o tracking existente da landing em `src/services/analyticsService.ts`, sem remocao dos tipos de evento ja usados
 - o comportamento funcional do CRM, que continua isolado por `AuthProvider`, `ProtectedRoute` e `CrmLayout`
+- os componentes `Benefits`, `Security` e `FinalCTA`, mantidos fora do fluxo principal como referencia editorial e opcao de rollback seguro
 
 Observacao importante:
 
@@ -86,6 +88,18 @@ O frontend do CRM foi reorganizado em `src/features/crm/`:
 
 - rota: `/`
 - papel: captacao publica de leads e tracking da landing
+- estrutura real de `src/pages/HomePage.tsx`:
+  - `Header` sempre renderizado
+  - `main` renderiza condicionalmente `SuccessView` ou a sequencia `Hero -> Problems -> Solution -> TrustSection -> Pricing -> FaqSection -> LeadForm`
+  - `Footer` sempre renderizado
+- comportamento apos envio:
+  - `LeadForm` chama `onSuccess`, e `HomePage` troca o estado local para exibir `SuccessView`
+  - enquanto `SuccessView` estiver visivel, o `Header` continua montado, mas com o CTA principal oculto via `hideCTA`
+  - o CTA `Revisar a solucao` fecha a tela de sucesso, reexibe a landing e tenta rolar suavemente para `#solucao`
+  - se a ancora nao estiver disponivel, o fallback e rolar para o topo
+- navegacao por ancora:
+  - em `/`, o `Header` usa hashes locais `#problemas`, `#solucao`, `#precos`, `#faq` e `#contato`
+  - fora da home, o `Header` prefixa esses destinos com `/`, preservando o retorno para a landing a partir das paginas legais
 - servicos principais:
   - `src/services/leadService.ts`
   - `src/services/analyticsService.ts`
@@ -211,7 +225,7 @@ npm install
 npm run dev
 ```
 
-Servidor local padrao: `http://localhost:8080`
+Servidor local padrao do Vite: `http://localhost:5173`
 
 ## Validacao local
 
@@ -219,6 +233,23 @@ Servidor local padrao: `http://localhost:8080`
 npm run test
 npm run build
 ```
+
+## Build e deploy
+
+- build de producao: `npm run build`
+- preview local de build: `npm run preview`
+- configuracao da Vercel: `vercel.json` com rewrite unico para `/index.html`, compativel com o uso de React Router no frontend
+
+## Fluxo de publicacao no Vercel
+
+- o projeto possui integracao ativa com a Vercel
+- pushes em branches de trabalho geram `Preview Deployments`
+- a branch `main` e a branch de `Production` na Vercel
+- portanto, alteracoes so chegam ao ambiente de producao depois de merge ou push na `main`
+- fluxo recomendado:
+  - desenvolver e validar a mudanca na branch de trabalho
+  - revisar o preview deployment correspondente
+  - publicar em producao apenas apos merge da branch validada na `main`
 
 ## Integracoes
 
@@ -234,6 +265,3 @@ npm run build
 - Se existir, deve apontar para uma automacao isolada do ambiente de testes.
 - Falhas no webhook nao devem impedir a gravacao principal no banco.
 
-## Observacao operacional
-
-Nao existe arquivo `.vercel/project.json` versionado neste repositorio. O vinculo do deploy deve ser conferido manualmente na Vercel para garantir que o projeto conectado tambem seja o ambiente de testes.

@@ -18,8 +18,8 @@ const SECTION_ID = "contato";
 
 const trustPoints = [
   "Retorno comercial em até 1 dia útil",
-  "Teste grátis de 14 dias",
-  "Sem alterar a forma como seus leads já são captados",
+  "Demonstração orientada ao seu cenário",
+  "Teste de 14 dias para avaliar aderência",
 ] as const;
 
 const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
@@ -180,12 +180,11 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       <div className="container" ref={ref}>
         <div className="grid gap-10 lg:grid-cols-[0.95fr_1.05fr]">
           <div className={`text-primary-foreground ${isVisible ? "animate-fade-in-up" : "opacity-0"}`}>
-            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/70">Demonstração e teste</span>
             <h2 id="lead-form-title" className="mt-4 text-3xl font-extrabold md:text-4xl">
-              Fale com um especialista e veja se a plataforma faz sentido para a sua operação.
+              Solicite uma demonstração e avalie a plataforma no seu cenário.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-8 text-primary-foreground/84">
-              Preencha seus dados e nossa equipe comercial retorna para entender o cenário da empresa, apresentar a solução e orientar o melhor próximo passo.
+              Preencha os dados para nosso time entender a sua operação e conduzir a próxima etapa comercial com objetividade.
             </p>
 
             <div className="mt-8 space-y-3">
@@ -218,7 +217,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             <div className="mb-6">
               <h3 className="text-2xl font-bold text-foreground">Solicitar demonstração</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Campos essenciais para nosso time preparar um contato comercial mais útil para a sua realidade.
+                Deixe seus dados para receber um contato comercial alinhado ao seu contexto.
               </p>
             </div>
 
@@ -271,7 +270,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
               <div>
                 <label htmlFor="email" className="mb-2 block text-sm font-medium text-foreground">
-                  E-mail corporativo
+                  E-mail profissional
                 </label>
                 <Input
                   id="email"
@@ -340,7 +339,7 @@ const LeadForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
             <Button variant="cta" type="submit" className="mt-6 h-14 w-full rounded-xl text-lg" disabled={isSubmitting || submitted}>
               <Send className={`mr-2 h-5 w-5 ${isSubmitting ? "animate-pulse" : ""}`} />
-              {isSubmitting ? "Enviando..." : "Quero agendar minha demonstração"}
+              {isSubmitting ? "Enviando..." : "Solicitar demonstração"}
             </Button>
 
             <p className="mt-4 text-center text-xs leading-6 text-muted-foreground">

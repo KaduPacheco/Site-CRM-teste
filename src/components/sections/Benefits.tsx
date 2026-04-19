@@ -1,6 +1,7 @@
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { BarChart2, Clock3, ScanSearch, Users } from "lucide-react";
 
+// Preservado fora do fluxo principal da landing para referência editorial e rollback seguro.
 const benefits = [
   {
     icon: Clock3,
@@ -33,11 +34,10 @@ const Benefits = () => {
         <div className="mx-auto mb-16 max-w-3xl text-center">
           <span className="text-sm font-bold uppercase tracking-widest text-secondary">Resultados esperados</span>
           <h2 id="benefits-title" className="mt-3 text-3xl font-extrabold leading-tight text-foreground md:text-4xl">
-            O ganho está na rotina: menos esforço, mais previsibilidade.
+            Mais previsibilidade na rotina, menos esforço no fechamento.
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            A landing deixa claro o que importa para quem compra: controle operacional, rastreabilidade e mais confiança nas
-            decisões ligadas à jornada.
+            A plataforma centraliza informações da jornada para dar mais controle operacional, rastreabilidade e segurança nas decisões do dia a dia.
           </p>
         </div>
 
